@@ -1,0 +1,14 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "label": "publish",
+            "type": "shell",
+            "command": "cls\ndotnet build -c Release\nif (Test-Path -Path \"Output\") {rm -R \"Output\"}\nmkdir \"Output\\kebinImports\\Editor\\Scripts\" > $null\nmkdir \"Output\\kebinImports\\Editor\\Resources\" > $null\ncp -R \"Editor\\Scripts\\info.json\" \"Output\\kebinImports\\Editor\\Scripts\\info.json\" > $null\ncp -R \"Editor\\Resources\\*\" \"Output\\kebinImports\\Editor\\Resources\" > $null\ncp -R \"bin\\Release\\net471\\kebinImports.dll\" \"Output\\kebinImports\\Editor\\Scripts\\kebinImports.dll\" > $null\ncp -R \"LICENSE\" \"Output\\kebinImports\\LICENSE\" > $null\ncp -R \"CHANGELOG\" \"Output\\kebinImports\\CHANGELOG\" > $null\nrm -R bin\nrm -R obj"
+        }
+    ]
+}

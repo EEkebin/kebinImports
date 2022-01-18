@@ -16,7 +16,7 @@
 
 ## Installation
 
-1. [Click here to download the latest release.](https://github.com/EEkebin/kebinImports/release/latest/download/kebinImports.unitypackage)
+1. [Click here to download the latest release.](https://github.com/EEkebin/kebinImports/releases/latest/download/kebinImports.unitypackage)
 2. Just Import kebinImports by dragging and dropping it into Unity.
 
 ## Features

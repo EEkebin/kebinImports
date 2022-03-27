@@ -115,7 +115,7 @@ public partial class kebinImports : MonoBehaviour
         }
         catch (System.Exception)
         {
-            Debug.LogError("[kebinImports] Error: Attempted to Update Settings but failed miserably. Seek help and advice from the Discord Server.");
+            Debug.LogError("[kebinImports] Error: Attempted to Update Settings, but failed miserably. Seek help and advice from the Discord Server.");
         }
     }
 

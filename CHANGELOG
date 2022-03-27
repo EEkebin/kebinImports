@@ -1,5 +1,5 @@
 v2022.03.27 [The Fixer Update]
- - Added a Menu Item for PANIC HARD RESET ALL. This option displays a warning, if warnings are enabled, before clearing all Registry Keys tied to Unity Editor (Also Known As Unity Editor Preferences) and exits the Unity Editor. It is left up to the End User to reopen the project through Unity Hub.
+ - Added a Menu Item for PANIC HARD RESET ALL. This option displays a warning, if warnings are enabled, before clearing all Registry Keys tied to Unity Editor (Also Known As Unity Editor Preferences and some per project settings) and exits the Unity Editor. It is left up to the End User to reopen the project through Unity Hub.
  - Fixed Up the wrapping of CHANGELOG to take up less space, be more optimized, and ease deployment process.
 
 v2022.03.21 [The Full Stack Dev Update]

@@ -57,10 +57,9 @@ public partial class kebinImports : MonoBehaviour
             GUILayout.BeginArea(changelog);
             GUILayout.Label("Changelog:");
             scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, false, true);
-            GUILayout.Label(File.ReadAllText(Application.dataPath + @"/kebinImports/CHANGELOG"));
+            EditorGUILayout.LabelField(File.ReadAllText(Application.dataPath + @"/kebinImports/CHANGELOG"), EditorStyles.wordWrappedLabel);
             EditorGUILayout.EndScrollView();
             GUILayout.EndArea();
-
             GUILayout.FlexibleSpace();
             GUILayout.BeginHorizontal();
             versionStyle = new GUIStyle(GUI.skin.label);

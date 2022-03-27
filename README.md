@@ -39,7 +39,7 @@
     </tr>
     <tr>
       <th>Quick Fixes</th>
-      <td>Fix Scripting Define Symbols<br>Fix All Materials<br>Remove Missing Scripts</td>
+      <td>Fix Scripting Define Symbols<br>Fix All Materials<br>Remove Missing Scripts<br>PANIC HARD RESET ALL</td>
     </tr>
     <tr>
       <th>Extra Shaders</th>

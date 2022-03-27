@@ -70,6 +70,8 @@
 
 ## Disclaimers
 
+> kebinImports nor its contributors take responsibility of the actions of end users. The responsibility lies with the end user to not misuse of kebinImports and/or any other products and/or services.
+
 > kebinImports is not sponsored by or affiliated with Unity Technologies or any of its affiliates. "Unity" is a trademark or registered trademark of Unity Technologies and/or its affiliates in the U.S. and elsewhere.
 
 > kebinImports is not sponsored by or affiliated with VRChat Incorporated or any of its affiliates. "VRChat" is a trademark or registered trademark of VRChat Incorporated and/or its affiliates in the U.S. and elsewhere.

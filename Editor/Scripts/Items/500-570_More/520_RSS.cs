@@ -7,7 +7,7 @@ using kebinClient;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Extra Shaders/reroStandard Shaders", false, 520)]
+    [MenuItem("kebinImports/More/reroStandard Shaders", false, 520)]
     private static void importRSS()
     {
         Selection.activeGameObject = null;

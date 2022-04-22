@@ -7,7 +7,7 @@ using kebinClient;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Extra Shaders/Legacy/Cubed's Unity Shaders", false, 560)]
+    [MenuItem("kebinImports/More/Legacy/Cubed's Unity Shaders", false, 570)]
     private static void importCUS()
     {
         Selection.activeGameObject = null;

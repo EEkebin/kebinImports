@@ -5,7 +5,7 @@ using kebinClient;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Extra Shaders/Legacy/Arktoon Shaders", false, 550)]
+    [MenuItem("kebinImports/More/Legacy/Arktoon Shaders", false, 560)]
     private static void importAS()
     {
         Selection.activeGameObject = null;

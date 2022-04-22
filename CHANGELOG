@@ -1,3 +1,6 @@
+v2022.04.22 [The New Era Update]
+ - The era of dynamic bone been ended. As Avatar Dynamic have recently been enabled for Live, it has been decided to move Dynamic Bone to the Legacy Components. This change was a vote taken on the Discord. Thanks for the amazing years, Dynamic Bone. Long Live Avatar Dynamics and PhysBones.
+
 v2022.03.27 [The Fixer Update]
  - Added a Menu Item for PANIC HARD RESET ALL. This option displays a warning, if warnings are enabled, before clearing all Registry Keys tied to Unity Editor (Also Known As Unity Editor Preferences and some per project settings) and exits the Unity Editor. It is left up to the End User to reopen the project through Unity Hub.
  - Fixed Up the wrapping of CHANGELOG to take up less space, be more optimized, and ease deployment process.

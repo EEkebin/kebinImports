@@ -7,7 +7,7 @@ using kebinClient;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Extra Shaders/Mochies Unity Shaders", false, 510)]
+    [MenuItem("kebinImports/More/Mochies Unity Shaders", false, 510)]
     private static void importMUS()
     {
         Selection.activeGameObject = null;

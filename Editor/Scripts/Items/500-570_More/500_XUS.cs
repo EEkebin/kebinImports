@@ -31,6 +31,6 @@ public partial class kebinImports : MonoBehaviour
         // Import Asset
         string repoLink = "https://api.github.com/repos/Xiexe/Xiexes-Unity-Shaders/releases/latest";
 
-        ImportAsset(JSON.Parse(Task.Run(() => ModHttpClient.DownloadString(client,repoLink)).Result)["zipball_url"], true, "Xiexes-Unity-Shaders");
+        ImportAsset(JSON.Parse(Task.Run(() => ModHttpClient.DownloadString(client,repoLink)).Result)["zipball_url"], true, false, "Xiexes-Unity-Shaders");
     }
 }

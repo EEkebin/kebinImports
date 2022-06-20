@@ -39,7 +39,7 @@ public partial class kebinImports : MonoBehaviour
     }
 
     // Method to import a unitypackage by file or by URL
-    private static void ImportAsset(string fileOrURL, bool zip = false, string name = "")
+    private static void ImportAsset(string fileOrURL, bool zippedAssets = false, bool zippedPackage = false, string name = "")
     {
         Selection.activeGameObject = null;
         string path = string.Empty;
@@ -54,12 +54,24 @@ public partial class kebinImports : MonoBehaviour
             path = Application.persistentDataPath + @"/" + fileOrURL.Substring(fileOrURL.LastIndexOf('/') + 1);
             Task.Run(() => ModHttpClient.DownloadFile(client, fileOrURL, @path)).Wait();
         }
-        if (!zip)
+        if (!zippedAssets && !zippedPackage)
             AssetDatabase.ImportPackage(@path, false);
-        else
+        else if (zippedAssets && !zippedPackage)
             ZipFile.ExtractToDirectory(@path, Application.dataPath + @"/" + name);
+        else if (zippedPackage && !zippedAssets)
+        {
+            ZipFile.ExtractToDirectory(@path, Application.persistentDataPath + @"/Extracted");
+            // Look for a unitypackage the folder and import it
+            foreach (string filePath in Directory.GetFiles(Application.persistentDataPath + @"/Extracted", "*.unitypackage", SearchOption.AllDirectories))
+                AssetDatabase.ImportPackage(filePath, false);
+        }
+
         if (file == false && File.Exists(@path))
+        {
             File.Delete(@path);
+            if (Directory.Exists(Application.persistentDataPath + @"/Extracted"))
+                Directory.Delete(Application.persistentDataPath + @"/Extracted", true);
+        }
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }

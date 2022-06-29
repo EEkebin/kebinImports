@@ -70,7 +70,7 @@
 
 ## Disclaimers
 
-> kebinImports and/or its contributors are not responsible of the actions of end users. The responsibility lies with the end user to not misuse kebinImports and/or any other products and/or services.
+> kebinImports and/or its contributors are not responsible of the actions of end users. All liabilities and responsibilities lie with the end user for the misuse(s) of kebinImports and/or any other products and/or services.
 
 > kebinImports and/or its contributors are not sponsored by or affiliated with Unity Technologies or any of its affiliates. "Unity" is a trademark or registered trademark of Unity Technologies and/or its affiliates in the U.S. and elsewhere.
 

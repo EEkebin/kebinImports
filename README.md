@@ -9,7 +9,7 @@
 
 | Social | Donate |
 |:---:|:---:|
-| [![Discord](https://img.shields.io/discord/844230948194877470?color=blue&label=kebinImports&logo=Discord&logoColor=white&style=for-the-badge)](https://discord.gg/UP9kDeVJqs)|[![PayPal](https://img.shields.io/static/v1?color=blue&label=PayPal&logo=PayPal&style=for-the-badge&message=kebinImports)](https://paypal.me/kebinImports)<br>[![CashApp](https://img.shields.io/static/v1?color=blue&label=CashApp&logo=CashApp&logoColor=green&style=for-the-badge&message=kebinImports)](https://cash.app/$kebinImports)|
+| [![Discord](https://img.shields.io/discord/844230948194877470?color=blue&label=kebinImports&logo=Discord&logoColor=white&style=for-the-badge)](https://discord.gg/UP9kDeVJqs)<br>![Downloads](https://img.shields.io/github/downloads/EEkebin/kebinImports/total?color=blue&style=for-the-badge)|[![PayPal](https://img.shields.io/static/v1?color=blue&label=PayPal&logo=PayPal&style=for-the-badge&message=kebinImports)](https://paypal.me/kebinImports)<br>[![CashApp](https://img.shields.io/static/v1?color=blue&label=CashApp&logo=CashApp&logoColor=green&style=for-the-badge&message=kebinImports)](https://cash.app/$kebinImports)|
 </div>
 
 ---

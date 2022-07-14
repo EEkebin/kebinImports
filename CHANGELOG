@@ -1,5 +1,6 @@
 v2022.07.14 [The Birthday Update]
 - Fun Fact: It is my birthday today! (July 14)
+- UdonSharp repository link updated.
 - Updated .NET Framework from 4.7.1 to 4.8.
 - Revamped Fix Materials as a Custom Editor to include any shader, even hidden ones, eg. Hidden/InternalErrorShader.
 - Renamed Customize Essentials to Customize and moved it under the Essentials list.

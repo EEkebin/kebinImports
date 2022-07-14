@@ -54,7 +54,7 @@ public partial class kebinImports : MonoBehaviour
             FSDSHandler(true);
 
         // Import Asset
-        string repoLink = "https://api.github.com/repos/MerlinVR/UdonSharp/releases/latest";
+        string repoLink = "https://api.github.com/repos/vrchat-community/UdonSharp/releases/latest";
         ImportAsset(JSON.Parse(Task.Run(() => ModHttpClient.DownloadString(client,repoLink)).Result)["assets"][0]["browser_download_url"]);
     }
 }

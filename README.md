@@ -39,15 +39,11 @@
     </tr>
     <tr>
       <th>Quick Fixes</th>
-      <td>Fix Scripting Define Symbols<br>Fix All Materials<br>Remove Missing Scripts<br>PANIC HARD RESET ALL</td>
+      <td>Remove Missing Scripts<br>Fix Materials<br>Fix Scripting Define Symbols<br>PANIC HARD RESET ALL</td>
     </tr>
     <tr>
-      <th>Extra Shaders</th>
+      <th>More</th>
       <td>Xiexe's Unity Shaders<br>Mochie's Unity Shaders<br>reroStandard Shaders<br>Legacy<br>&nbsp;&nbsp;&nbsp;&nbsp;Yukio's Fur Shader<br>&nbsp;&nbsp;&nbsp;&nbsp;Arktoon Shaders<br>&nbsp;&nbsp;&nbsp;&nbsp;Cubed's Unity Shaders</td>
-    </tr>
-    <tr>
-      <th>Miscellaneous</th>
-      <td>TBA 😐</td>
     </tr>
   </tbody>
 </table>

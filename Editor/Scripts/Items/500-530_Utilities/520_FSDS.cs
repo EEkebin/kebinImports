@@ -3,7 +3,7 @@ using UnityEditor;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Fix Scripting Define Symbols", false, 400)]
+    [MenuItem("kebinImports/Fix Scripting Define Symbols", false, 520)]
     private static void FSDS()
     {
         FSDSHandler();

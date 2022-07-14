@@ -1,7 +1,10 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEditor;
 using SimpleJSON;
+using kebinClient;
 
 /* 
     This controls kebinImports Settings Window
@@ -20,7 +23,7 @@ public partial class kebinImports : MonoBehaviour
         {
             EditorApplication.update -= settingsWindow.showWindow;
             if (EditorApplication.isPlaying) return;
-            settingsWindow window = (settingsWindow)EditorWindow.GetWindow(typeof(settingsWindow), true, "kebinImports");
+            settingsWindow window = EditorWindow.GetWindow<settingsWindow>(true, "kebinImports");
             window.minSize = new Vector2(400, 500);
             window.maxSize = new Vector2(400, 500);
             window.Show();
@@ -29,21 +32,19 @@ public partial class kebinImports : MonoBehaviour
         {
             kebinSplash = new GUIStyle
             {
-                normal = {
-                    background = Resources.Load("kebinSplash") as Texture2D,
-                    textColor = Color.white
-                },
+                normal = { background = Resources.Load("kebinSplash") as Texture2D },
                 fixedHeight = 200
             };
             Rect banner = new Rect(0, 0, Screen.width, 200);
-            Rect checkBoxes = new Rect(0, banner.height + 10, Screen.width, 20);
+            Rect checkBoxes = new Rect(5, banner.height + 10, Screen.width, 20);
             Rect changelog = new Rect(0, checkBoxes.y + checkBoxes.height + 10, Screen.width, 240);
 
             GUILayout.BeginArea(banner);
             GUILayout.Box("", kebinSplash);
+
             discordStyle = new GUIStyle(GUI.skin.button);
             discordStyle.normal.textColor = Color.white;
-            discordStyle.hover.textColor = new Color32(115, 138, 219, 255);
+            discordStyle.hover.textColor = new Color32(114, 137, 218, 255);
             discordStyle.fontSize = 20;
             GUI.backgroundColor = Color.gray;
             if (GUI.Button(new Rect(210, 155, 150, 40), "DISCORD", discordStyle))
@@ -51,11 +52,11 @@ public partial class kebinImports : MonoBehaviour
             GUILayout.EndArea();
 
             GUILayout.BeginArea(checkBoxes);
-            hideWarnings = EditorGUILayout.Toggle("Hide Warnings: ", hideWarnings);
+            hideWarnings = GUILayout.Toggle(hideWarnings, "Hide Warnings");
             GUILayout.EndArea();
 
             GUILayout.BeginArea(changelog);
-            GUILayout.Label("Changelog:");
+            EditorGUILayout.LabelField("Changelog:");
             scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, false, true);
             EditorGUILayout.LabelField(File.ReadAllText(Application.dataPath + @"/kebinImports/CHANGELOG"), EditorStyles.wordWrappedLabel);
             EditorGUILayout.EndScrollView();
@@ -64,10 +65,11 @@ public partial class kebinImports : MonoBehaviour
             GUILayout.BeginHorizontal();
             versionStyle = new GUIStyle(GUI.skin.label);
             versionStyle.normal.textColor = Color.green;
-            GUILayout.Label("Installed Version: " + JSON.Parse(File.ReadAllText(Application.dataPath + @"/kebinImports/Editor/Scripts/info.json"))["version"], versionStyle);
+            EditorGUILayout.LabelField("Installed Version: " + JSON.Parse(File.ReadAllText(Application.dataPath + @"/kebinImports/Editor/Scripts/info.json"))["version"], versionStyle);
             GUILayout.FlexibleSpace();
             showSplash = GUILayout.Toggle(showSplash, "Show at Startup");
             GUILayout.EndHorizontal();
+            this.Repaint();
         }
 
         void OnLostFocus()

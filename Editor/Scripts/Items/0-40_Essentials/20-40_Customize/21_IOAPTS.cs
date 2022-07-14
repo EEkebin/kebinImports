@@ -3,7 +3,7 @@ using UnityEditor;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Customize Essentials/Avatar Essentials/Poiyomi Toon Shader", false, 610)]
+    [MenuItem("kebinImports/Customize/Avatar Essentials/Poiyomi Toon Shader", false, 21)]
     private static void IOAPTS()
     {
         if (IOA[1] == '0')

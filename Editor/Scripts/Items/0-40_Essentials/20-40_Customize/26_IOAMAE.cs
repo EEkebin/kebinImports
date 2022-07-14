@@ -3,7 +3,7 @@ using UnityEditor;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Customize Essentials/Avatar Essentials/Muscle Animation Editor", false, 660)]
+    [MenuItem("kebinImports/Customize/Avatar Essentials/Muscle Animation Editor", false, 26)]
     private static void IOAMAE()
     {
         if (IOA[6] == '0')

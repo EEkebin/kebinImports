@@ -3,7 +3,7 @@ using UnityEditor;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Customize Essentials/World Essentials/Poiyomi Toon Shader", false, 710)]
+    [MenuItem("kebinImports/Customize/World Essentials/Poiyomi Toon Shader", false, 31)]
     private static void IOWPTS()
     {
         if (IOW[1] == '0')

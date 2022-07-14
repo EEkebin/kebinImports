@@ -3,7 +3,7 @@ using UnityEditor;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Customize Essentials/World Essentials/UdonSharp", false, 750)]
+    [MenuItem("kebinImports/Customize/World Essentials/UdonSharp", false, 35)]
     private static void IOWUS()
     {
         if (IOW[5] == '0')

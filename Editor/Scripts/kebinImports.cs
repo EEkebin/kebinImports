@@ -22,12 +22,10 @@ public partial class kebinImports : MonoBehaviour
     private static ModHttpClient client = null;
 
     // kebinImports Settings
-    private static bool hideWarnings;
-    private static bool showSplash;
+    private static bool hideWarnings, showSplash;
 
     // Get the registry key of import options
-    private static string IOA = string.Empty;
-    private static string IOW = string.Empty;
+    private static string IOA = string.Empty, IOW = string.Empty;
 
     // Clears the UnityEditor Console
     private static void kebin_ClearLog()
@@ -98,32 +96,32 @@ public partial class kebinImports : MonoBehaviour
             showSplash = EditorPrefs.GetBool("kebinImports.showSplash", true);
 
             if (IOA[0] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/VRChat SDK 3", true);
+                Menu.SetChecked("kebinImports/Customize/Avatar Essentials/VRChat SDK 3", true);
             if (IOA[1] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/Poiyomi Toon Shader", true);
+                Menu.SetChecked("kebinImports/Customize/Avatar Essentials/Poiyomi Toon Shader", true);
             if (IOA[2] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/Unity-Chan Toon Shader 2.0", true);
+                Menu.SetChecked("kebinImports/Customize/Avatar Essentials/Unity-Chan Toon Shader 2.0", true);
             if (IOA[3] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/lilToon", true);
+                Menu.SetChecked("kebinImports/Customize/Avatar Essentials/lilToon", true);
             if (IOA[4] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/Dynamic Bone", true);
+                Menu.SetChecked("kebinImports/Customize/Avatar Essentials/Dynamic Bone", true);
             if (IOA[5] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/Pumkin's Avatar Tools", true);
+                Menu.SetChecked("kebinImports/Customize/Avatar Essentials/Pumkin's Avatar Tools", true);
             if (IOA[6] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/Muscle Animation Editor", true);
+                Menu.SetChecked("kebinImports/Customize/Avatar Essentials/Muscle Animation Editor", true);
 
             if (IOW[0] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/VRChat SDK 3", true);
+                Menu.SetChecked("kebinImports/Customize/World Essentials/VRChat SDK 3", true);
             if (IOW[1] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/Poiyomi Toon Shader", true);
+                Menu.SetChecked("kebinImports/Customize/World Essentials/Poiyomi Toon Shader", true);
             if (IOW[2] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/Unity-Chan Toon Shader 2.0", true);
+                Menu.SetChecked("kebinImports/Customize/World Essentials/Unity-Chan Toon Shader 2.0", true);
             if (IOW[3] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/lilToon", true);
+                Menu.SetChecked("kebinImports/Customize/World Essentials/lilToon", true);
             if (IOW[4] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/VRWorld Toolkit", true);
+                Menu.SetChecked("kebinImports/Customize/World Essentials/VRWorld Toolkit", true);
             if (IOW[5] == '1')
-                Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/UdonSharp", true);
+                Menu.SetChecked("kebinImports/Customize/World Essentials/UdonSharp", true);
         }
         catch (System.Exception)
         {

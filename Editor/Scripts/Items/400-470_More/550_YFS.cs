@@ -5,7 +5,7 @@ using kebinClient;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/More/Legacy/Yukio's Fur Shader", false, 550)]
+    [MenuItem("kebinImports/More/Legacy/Yukio's Fur Shader", false, 450)]
     private static void importYFS()
     {
         Selection.activeGameObject = null;

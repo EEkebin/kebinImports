@@ -3,7 +3,7 @@ using UnityEditor;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Customize Essentials/World Essentials/Unity-Chan Toon Shader 2.0", false, 720)]
+    [MenuItem("kebinImports/Customize/World Essentials/Unity-Chan Toon Shader 2.0", false, 32)]
     private static void IOWUTS()
     {
         if (IOW[2] == '0')

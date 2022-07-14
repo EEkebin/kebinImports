@@ -1,3 +1,14 @@
+v2022.07.14 [The Birthday Update]
+- Fun Fact: It is my birthday today! (July 14)
+- Updated .NET Framework from 4.7.1 to 4.8.
+- Revamped Fix Materials as a Custom Editor to include any shader, even hidden ones, eg. Hidden/InternalErrorShader.
+- Renamed Customize Essentials to Customize and moved it under the Essentials list.
+- Reversed the order of the sections More, and the Utilities section.
+- Swapped the Remove Missing Scripts and Fix Scripting Define Symbols Menu Items.
+- Renamed Support tab back to Donate.
+- Fixed Hide Warnings Toggle.
+
+
 v2022.06.20 [The Gobbledygook Update]
 - Fun Fact: Gobbledygook is language that is made meaningless or unintelligble by excessive use of technical terminology. This CHANGELOG is full of nasty gobbledygook.
 - Fixed up importing of ComboGestureExpressions and the reimporting method for Hai's assets.

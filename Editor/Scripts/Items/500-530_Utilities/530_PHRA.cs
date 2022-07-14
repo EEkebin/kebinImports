@@ -4,7 +4,7 @@ using UnityEditor;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/PANIC HARD RESET ALL", false, 430)]
+    [MenuItem("kebinImports/PANIC HARD RESET ALL", false, 530)]
     private static void PHRA()
     {
         if (hideWarnings == false)

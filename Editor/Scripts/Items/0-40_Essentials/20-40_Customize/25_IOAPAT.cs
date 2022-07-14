@@ -3,7 +3,7 @@ using UnityEditor;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Customize Essentials/Avatar Essentials/Pumkin's Avatar Tools", false, 650)]
+    [MenuItem("kebinImports/Customize/Avatar Essentials/Pumkin's Avatar Tools", false, 25)]
     private static void IOAPAT()
     {
         if (IOA[5] == '0')

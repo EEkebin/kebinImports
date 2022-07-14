@@ -3,7 +3,7 @@ using UnityEditor;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Customize Essentials/World Essentials/VRChat SDK 3", false, 700)]
+    [MenuItem("kebinImports/Customize/World Essentials/VRChat SDK 3", false, 30)]
     private static void IOWVRCSDK3()
     {
         if (IOW[0] == '0')

@@ -3,7 +3,7 @@ using UnityEditor;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Customize Essentials/Avatar Essentials/VRChat SDK 3", false, 600)]
+    [MenuItem("kebinImports/Customize/Avatar Essentials/VRChat SDK 3", false, 20)]
     private static void IOAVRCSDK3()
     {
         if (IOA[0] == '0')

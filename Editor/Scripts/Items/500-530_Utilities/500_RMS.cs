@@ -7,7 +7,7 @@ public partial class kebinImports : MonoBehaviour
 {
     private class RemoveMissingScripts : MonoBehaviour
     {
-        [MenuItem("kebinImports/Remove Missing Scripts", false, 420)]
+        [MenuItem("kebinImports/Remove Missing Scripts", false, 500)]
         private static void RMS()
         {
             var deeperSelection = Selection.gameObjects.SelectMany(go => go.GetComponentsInChildren<Transform>(true))

@@ -5,7 +5,7 @@ using UnityEditor;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/More/Legacy/Dynamic Bone", false, 540)]
+    [MenuItem("kebinImports/More/Legacy/Dynamic Bone", false, 440)]
     private static void importDB()
     {
         Selection.activeGameObject = null;

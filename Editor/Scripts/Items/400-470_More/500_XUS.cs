@@ -7,7 +7,7 @@ using kebinClient;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/More/Xiexes Unity Shaders", false, 500)]
+    [MenuItem("kebinImports/More/Xiexes Unity Shaders", false, 400)]
     private static void importXUS()
     {
         Selection.activeGameObject = null;

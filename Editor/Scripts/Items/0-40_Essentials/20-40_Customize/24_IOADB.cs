@@ -3,7 +3,7 @@ using UnityEditor;
 
 public partial class kebinImports : MonoBehaviour
 {
-    [MenuItem("kebinImports/Customize Essentials/Avatar Essentials/Dynamic Bone", false, 640)]
+    [MenuItem("kebinImports/Customize/Avatar Essentials/Dynamic Bone", false, 24)]
     private static void IOADB()
     {
         if (IOA[4] == '0')

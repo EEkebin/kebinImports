@@ -9,12 +9,12 @@ public partial class kebinImports : MonoBehaviour
         if (IOW[0] == '0')
         {
             IOW = "1" + IOW.Substring(1);
-            Menu.SetChecked("kebinImports/Customize/World Essentials/VRChat SDK 3", true);
+            Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/VRChat SDK 3", true);
         }
         else
         {
             IOW = "0" + IOW.Substring(1);
-            Menu.SetChecked("kebinImports/Customize/World Essentials/VRChat SDK 3", false);
+            Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/VRChat SDK 3", false);
         }
         EditorPrefs.SetString("kebinImports.IOW", IOW);
     }

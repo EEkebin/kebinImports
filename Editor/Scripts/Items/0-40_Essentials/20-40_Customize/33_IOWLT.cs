@@ -9,12 +9,12 @@ public partial class kebinImports : MonoBehaviour
         if (IOW[3] == '0')
         {
             IOW = IOW.Substring(0, 3) + "1" + IOW.Substring(4);
-            Menu.SetChecked("kebinImports/Customize/World Essentials/lilToon", true);
+            Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/lilToon", true);
         }
         else
         {
             IOW = IOW.Substring(0, 3) + "0" + IOW.Substring(4);
-            Menu.SetChecked("kebinImports/Customize/World Essentials/lilToon", false);
+            Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/lilToon", false);
         }
         EditorPrefs.SetString("kebinImports.IOW", IOW);
     }

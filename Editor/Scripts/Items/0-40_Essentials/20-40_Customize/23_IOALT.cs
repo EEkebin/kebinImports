@@ -9,12 +9,12 @@ public partial class kebinImports : MonoBehaviour
         if (IOA[3] == '0')
         {
             IOA = IOA.Substring(0, 3) + "1" + IOA.Substring(4);
-            Menu.SetChecked("kebinImports/Customize/Avatar Essentials/lilToon", true);
+            Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/lilToon", true);
         }
         else
         {
             IOA = IOA.Substring(0, 3) + "0" + IOA.Substring(4);
-            Menu.SetChecked("kebinImports/Customize/Avatar Essentials/lilToon", false);
+            Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/lilToon", false);
         }
         EditorPrefs.SetString("kebinImports.IOA", IOA);
     }

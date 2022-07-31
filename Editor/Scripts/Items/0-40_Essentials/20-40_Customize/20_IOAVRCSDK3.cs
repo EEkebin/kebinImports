@@ -9,12 +9,12 @@ public partial class kebinImports : MonoBehaviour
         if (IOA[0] == '0')
         {
             IOA = "1" + IOA.Substring(1);
-            Menu.SetChecked("kebinImports/Customize/Avatar Essentials/VRChat SDK 3", true);
+            Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/VRChat SDK 3", true);
         }
         else
         {
             IOA = "0" + IOA.Substring(1);
-            Menu.SetChecked("kebinImports/Customize/Avatar Essentials/VRChat SDK 3", false);
+            Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/VRChat SDK 3", false);
         }
         EditorPrefs.SetString("kebinImports.IOA", IOA);
     }

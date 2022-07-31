@@ -9,12 +9,12 @@ public partial class kebinImports : MonoBehaviour
         if (IOW[1] == '0')
         {
             IOW = IOW.Substring(0, 1) + "1" + IOW.Substring(2);
-            Menu.SetChecked("kebinImports/Customize/World Essentials/Poiyomi Toon Shader", true);
+            Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/Poiyomi Toon Shader", true);
         }
         else
         {
             IOW = IOW.Substring(0, 1) + "0" + IOW.Substring(2);
-            Menu.SetChecked("kebinImports/Customize/World Essentials/Poiyomi Toon Shader", false);
+            Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/Poiyomi Toon Shader", false);
         }
         EditorPrefs.SetString("kebinImports.IOW", IOW);
     }

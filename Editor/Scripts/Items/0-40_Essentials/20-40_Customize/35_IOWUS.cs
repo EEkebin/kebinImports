@@ -9,12 +9,12 @@ public partial class kebinImports : MonoBehaviour
         if (IOW[5] == '0')
         {
             IOW = IOW.Substring(0, 5) + "1";
-            Menu.SetChecked("kebinImports/Customize/World Essentials/UdonSharp", true);
+            Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/UdonSharp", true);
         }
         else
         {
             IOW = IOW.Substring(0, 5) + "0";
-            Menu.SetChecked("kebinImports/Customize/World Essentials/UdonSharp", false);
+            Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/UdonSharp", false);
         }
         EditorPrefs.SetString("kebinImports.IOW", IOW);
     }

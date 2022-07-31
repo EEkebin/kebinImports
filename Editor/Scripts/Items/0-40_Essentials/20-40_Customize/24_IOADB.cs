@@ -9,12 +9,12 @@ public partial class kebinImports : MonoBehaviour
         if (IOA[4] == '0')
         {
             IOA = IOA.Substring(0, 4) + "1" + IOA.Substring(5);
-            Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/Dynamic Bone", true);
+            Menu.SetChecked("kebinImports/Customize/Avatar Essentials/Dynamic Bone", true);
         }
         else
         {
             IOA = IOA.Substring(0, 4) + "0" + IOA.Substring(5);
-            Menu.SetChecked("kebinImports/Customize Essentials/Avatar Essentials/Dynamic Bone", false);
+            Menu.SetChecked("kebinImports/Customize/Avatar Essentials/Dynamic Bone", false);
         }
         EditorPrefs.SetString("kebinImports.IOA", IOA);
     }

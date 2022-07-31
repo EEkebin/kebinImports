@@ -9,12 +9,12 @@ public partial class kebinImports : MonoBehaviour
         if (IOW[2] == '0')
         {
             IOW = IOW.Substring(0, 2) + "1" + IOW.Substring(3);
-            Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/Unity-Chan Toon Shader 2.0", true);
+            Menu.SetChecked("kebinImports/Customize/World Essentials/Unity-Chan Toon Shader 2.0", true);
         }
         else
         {
             IOW = IOW.Substring(0, 2) + "0" + IOW.Substring(3);
-            Menu.SetChecked("kebinImports/Customize Essentials/World Essentials/Unity-Chan Toon Shader 2.0", false);
+            Menu.SetChecked("kebinImports/Customize/World Essentials/Unity-Chan Toon Shader 2.0", false);
         }
         EditorPrefs.SetString("kebinImports.IOW", IOW);
     }

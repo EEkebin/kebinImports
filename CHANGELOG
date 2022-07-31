@@ -1,3 +1,7 @@
+v2022.07.31 [The Essential Update]
+- Fixed Customizing of Essentials not updating checkboxes and saving settings. It now works.
+
+
 v2022.07.14 [The Birthday Update]
 - Fun Fact: It is my birthday today! (July 14)
 - UdonSharp repository link updated.

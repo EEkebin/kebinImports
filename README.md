@@ -14,12 +14,12 @@
 
 ---
 
-## Installation
+## **Installation**
 
 1. [Click here to download the latest release.](https://github.com/EEkebin/kebinImports/releases/latest/download/kebinImports.unitypackage)
 2. Just Import kebinImports by dragging and dropping it into Unity.
 
-## Features
+## **Features**
 
 > ***Italicized Assets require purchasing to import.***
 
@@ -27,15 +27,11 @@
   <tbody>
     <tr>
       <th>Avatar Essentials<br>[Customizable]</th>
-      <td>VRChat SDK 3 - Avatars<br>Poiyomi Toon Shader<br>Unity-Chan Toon Shader 2.0<br>lilToon<br>Pumkin's Avatar Tools<br><i>Dynamic Bone</i><br><i>Muscle Animation Editor</i></td>
+      <td>VRChat SDK 3 - Avatars [Legacy]<br>Poiyomi Toon Shader<br>Unity-Chan Toon Shader 2.0<br>lilToon<br>Pumkin's Avatar Tools<br><i>Dynamic Bone [Legacy]</i><br><i>Muscle Animation Editor</i><br>ComboGestureExpressions<br>Modular Avatar<br>Dressing Tools</td>
     </tr>
     <tr>
       <th>World Essentials<br>[Customizable]</th>
-      <td>VRChat SDK 3 - Worlds<br>Poiyomi Toon Shader<br>Unity-Chan Toon Shader 2.0<br>lilToon<br>VRWorld Toolkit<br>UdonSharp</td>
-    </tr>
-    <tr>
-      <th>Other Assets</th>
-      <td>ComboGestureExpressions</td>
+      <td>VRChat SDK 3 - Worlds [Legacy]<br>Poiyomi Toon Shader<br>Unity-Chan Toon Shader 2.0<br>lilToon</td>
     </tr>
     <tr>
       <th>Quick Fixes</th>
@@ -43,28 +39,23 @@
     </tr>
     <tr>
       <th>More</th>
-      <td>Xiexe's Unity Shaders<br>Mochie's Unity Shaders<br>reroStandard Shaders<br>Legacy<br>&nbsp;&nbsp;&nbsp;&nbsp;Yukio's Fur Shader<br>&nbsp;&nbsp;&nbsp;&nbsp;Arktoon Shaders<br>&nbsp;&nbsp;&nbsp;&nbsp;Cubed's Unity Shaders</td>
+      <td>Xiexe's Unity Shaders<br>Mochie's Unity Shaders<br>reroStandard Shaders<br>Load AssetBundle<br>Legacy<br>&nbsp;&nbsp;&nbsp;&nbsp;Yukio's Fur Shader<br>&nbsp;&nbsp;&nbsp;&nbsp;Arktoon Shaders<br>&nbsp;&nbsp;&nbsp;&nbsp;Cubed's Unity Shaders</td>
     </tr>
   </tbody>
 </table>
 
 > ***If any of the above assets are yours and you do not wish to allow their distribution through kebinImports, please contact me via Discord. Hopefully, we can come to a resolution or compromise.***
 
-## Build
-
-1. Run the **Default Build Task** in **Visual Studio Code**. (**Ctrl+Shift+B**)
-2. Check the *Output* directory for the *kebinImports* directory.
-
-## Credits
+## **Credits**
 
 > **[EEkebin](https://github.com/EEkebin)  
 > [ADigitalFrontier](https://github.com/ADigitalFrontier)**
 
-## Licenses
+## **Licenses**
 
 > [kebinImports is licensed under the GNU General Public License v3.0.](https://github.com/EEkebin/kebinImports/blob/main/LICENSE)
 
-## Disclaimers
+## **Disclaimers**
 
 > kebinImports and/or its contributors are not responsible of the actions of end users. All liabilities and responsibilities lie with the end user for the misuse(s) of kebinImports and/or any other products and/or services.
 

@@ -1,0 +1,31 @@
+{
+    "name": "dev.kebin.kebinimports",
+    "version": "2023.1.1",
+    "displayName": "kebinImports",
+    "description": "An Importer Menu for Commonly Used/Imported Assets in Unity for Avatar/World Development in Unity VR Games",
+    "url": "https://github.com/EEkebin/kebinImports/archive/refs/heads/main.zip",
+    "legacyFolders": {
+        "Assets\\kebinImports": "01a5a4819f1b73e43a6548c71c40cac6"
+    },
+    "keywords": [
+        "Importer",
+        "Assets",
+        "kebinImports",
+        "Quality of Life",
+        "QoL"
+    ],
+    "repository": "https://github.com/EEkebin/kebinImports",
+    "changelogUrl": "https://github.com/EEkebin/kebinImports/blob/main/CHANGELOG",
+    "licensesUrl": "https://github.com/EEkebin/kebinImports/blob/main/LICENSE",
+    "author": {
+        "name": "kebin",
+        "email": "kebinImports@gmail.com",
+        "url": "https://github.com/EEkebin",
+        "url2": "https://kebin.dev",
+        "discord": "https://discord.gg/invite/UP9kDeVJqs",
+        "donate": {
+            "paypal": "https://paypal.me/kebinImports",
+            "cashapp": "https://cash.app/$kebinImports"
+        }
+    }
+}

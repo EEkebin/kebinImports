@@ -7,13 +7,13 @@ namespace kebinImports
 {
     public partial class kebinImports : MonoBehaviour
     {
-        [MenuItem("kebinImports/VRChat SDK 2", true, 60)]
-        private static bool ValidateVRCSDK2()
+        [MenuItem("kebinImports/VRChat SDK 3/Worlds", true, 51)]
+        private static bool ValidateVRCSDK3w()
         {
             return !isVRCCreatorCompanion;
         }
-        [MenuItem("kebinImports/VRChat SDK 2", false, 60)]
-        private static void importVRCSDK2()
+        [MenuItem("kebinImports/VRChat SDK 3/Worlds", false, 51)]
+        private static void importVRCSDK3w()
         {
             client = new HttpClient();
             jsonNode = JSON.Parse(Task.Run(() => HttpClient.DownloadString(client, "https://api.vrchat.cloud/api/1/config")).Result);
@@ -23,7 +23,7 @@ namespace kebinImports
                 return;
             }
             ImportAsset(
-                pathOrURL: "https://vrchat.com/download/sdk2",
+                pathOrURL: "https://vrchat.com/download/sdk3-worlds",
                 assets: new string[] { "VRCSDK", "Udon", "VRChat Examples", "SerializedUdonPrograms", "../Packages/com.vrchat.vrcsdk3" },
                 packages: new string[] { "com.unity.burst", "com.unity.mathematics", "com.unity.xr.oculus.standalone", "com.unity.xr.openvr.standalone", "com.unity.cinemachine", "com.unity.postprocessing", "com.unity.package-manager-ui", "com.vrchat.vrcsdk3" });
         }

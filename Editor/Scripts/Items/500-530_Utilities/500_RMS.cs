@@ -12,6 +12,12 @@ namespace kebinImports
             [MenuItem("kebinImports/Remove Missing Scripts", false, 500)]
             private static void RMS()
             {
+                if (!hideWarnings && (EditorUtility.DisplayDialog(
+                    "WARNING!",
+                    "WARNING!\n\nThis will recursively remove all missing scripts that are in the selected asset. This includes the scripts that are not present in the project yet and are showing up as missing.\n\nAre you sure you want to do this?",
+                    "Yes",
+                    "No"
+                ) == false)) return;
                 var deeperSelection = Selection.gameObjects.SelectMany(go => go.GetComponentsInChildren<Transform>(true)).Select(t => t.gameObject);
                 var prefabs = new HashSet<Object>();
                 int compCount = 0;

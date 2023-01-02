@@ -1,4 +1,10 @@
 # ChangeLog
+## v2023.1.2 [The Dango Update]
+- Added a warning prompt to Remove Missing Scripts to prevent the accidental deletion of assets that are still in use but have not been imported.
+- Renamed all EditorPrefs used by kebinImports to include 'kebinImports.' as a prefix to avoid conflicts with other packages.
+- Corrected a typo that prevented the "Hide Warnings" and "Show at Startup" features from functioning properly.
+
+
 ## v2023.1.1 [The UNNAMED Update]
 - Rewritten as a Package, enabling import as a VPM (VRChat Package Manager) Package, a UPM (Unity Package Manager) Package, and as an Asset
 - Updated .NET Framework from 4.8 to 4.8.1

@@ -203,16 +203,16 @@ namespace kebinImports
         private static void UpdateSettings()
         {
             EditorApplication.update -= UpdateSettings;
-            hideWarnings = EditorPrefs.GetBool("hideWarnings", false);
-            showSplash = EditorPrefs.GetBool("showSplash", true);
-            avatarEssentials = Str2BoolArr(EditorPrefs.GetString("avatarEssentials", "1000000000"));
-            worldEssentials = Str2BoolArr(EditorPrefs.GetString("worldEssentials", "1000"));
+            hideWarnings = EditorPrefs.GetBool("kebinImports.hideWarnings", false);
+            showSplash = EditorPrefs.GetBool("kebinImports.showSplash", true);
+            avatarEssentials = Str2BoolArr(EditorPrefs.GetString("kebinImports.avatarEssentials", "1000000000"));
+            worldEssentials = Str2BoolArr(EditorPrefs.GetString("kebinImports.worldEssentials", "1000"));
             if (avatarEssentials.Length != 7 && worldEssentials.Length != 4)
             {
-                EditorPrefs.SetString("avatarEssentials", "1000000000");
-                EditorPrefs.SetString("worldEssentials", "1000");
-                avatarEssentials = Str2BoolArr(EditorPrefs.GetString("avatarEssentials", "1000000000"));
-                worldEssentials = Str2BoolArr(EditorPrefs.GetString("worldEssentials", "1000"));
+                EditorPrefs.SetString("kebinImports.avatarEssentials", "1000000000");
+                EditorPrefs.SetString("kebinImports.worldEssentials", "1000");
+                avatarEssentials = Str2BoolArr(EditorPrefs.GetString("kebinImports.avatarEssentials", "1000000000"));
+                worldEssentials = Str2BoolArr(EditorPrefs.GetString("kebinImports.worldEssentials", "1000"));
             }
             if (Directory.Exists(Application.dataPath + "/../Packages/com.vrchat.base"))
             {
@@ -226,7 +226,7 @@ namespace kebinImports
         [InitializeOnLoadMethod]
         private static void Initialize()
         {
-            EditorApplication.update += UpdateSettings;
+            UpdateSettings();
             if (showSplash)
             {
                 EditorApplication.update += SettingsWindow.ShowWindow;

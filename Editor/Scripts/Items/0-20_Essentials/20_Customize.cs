@@ -84,13 +84,13 @@ namespace kebinImports
             }
             private void OnDisable()
             {
-                EditorPrefs.SetString("avatarEssentials", BoolArr2Str(avatarEssentials));
-                EditorPrefs.SetString("worldEssentials", BoolArr2Str(worldEssentials));
+                EditorPrefs.SetString("kebinImports.avatarEssentials", BoolArr2Str(avatarEssentials));
+                EditorPrefs.SetString("kebinImports.worldEssentials", BoolArr2Str(worldEssentials));
             }
             private void OnLostFocus()
             {
-                EditorPrefs.SetString("avatarEssentials", BoolArr2Str(avatarEssentials));
-                EditorPrefs.SetString("worldEssentials", BoolArr2Str(worldEssentials));
+                EditorPrefs.SetString("kebinImports.avatarEssentials", BoolArr2Str(avatarEssentials));
+                EditorPrefs.SetString("kebinImports.worldEssentials", BoolArr2Str(worldEssentials));
             }
         }
     }

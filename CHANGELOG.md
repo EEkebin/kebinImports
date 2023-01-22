@@ -13,6 +13,7 @@
 - Optimized PANIC HARD RESET ALL and added cache clearing functionality
 - Created an EditorWindow for Customize Essentials to improve usability
 
+---
 
 ## v2022.07.31 [The Essential Update]
 - Fixed Customizing of Essentials not updating checkboxes and saving settings. It now works.
@@ -53,6 +54,7 @@
 - Made Fix Scripting Define Symbols to be more aggressive by forcing the Unity Editor to recompile all scripts. This prioritises the recompilation process instead of recompiling when convenient for Unity.
 - Reorganized kebinImports Menu Items structure to allocate more space and decrease clutter while adding clarity.
 
+---
 
 ## v2021.11.25 [The Manual Update]
 - Rewritten kebinImports with ADigitalFrontier.

@@ -1,4 +1,8 @@
 # ChangeLog
+## v2023.1.30 [The Bee Kind Update]
+- Fixed lilToon Shader not being imported properly.
+
+
 ## v2023.1.2 [The Dango Update]
 - Added a warning prompt to Remove Missing Scripts to prevent the accidental deletion of assets that are still in use but have not been imported.
 - Renamed all EditorPrefs used by kebinImports to include 'kebinImports.' as a prefix to avoid conflicts with other packages.

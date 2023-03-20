@@ -20,7 +20,8 @@ namespace kebinImports
             "Pumkin's Avatar Tools",
             "ComboGestureExpressions",
             "Modular Avatar",
-            "DressingTools"
+            "DressingTools",
+            "Avatar Performance Tools"
         };
         private static readonly Dictionary<int, Action> AEImports = new Dictionary<int, Action>
         {
@@ -33,7 +34,8 @@ namespace kebinImports
             { 6, importPAT },
             { 7, importCGE },
             { 8, importMA },
-            { 9, importDT }
+            { 9, importDT },
+            { 10, importAPT }
         };
         [MenuItem("kebinImports/Avatar Essentials", false, 0)]
         private static void importAvatarEssentials()

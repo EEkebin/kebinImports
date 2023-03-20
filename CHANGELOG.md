@@ -1,4 +1,9 @@
 # ChangeLog
+## v2023.3.20 [The Easy Update]
+- Added Thryrallo's VRC-Avatar-Performance-Tools package to kebinImports as an optional Avatar Essential.
+- Fixed a bug that occurs when updating from older versions of kebinImports.
+
+
 ## v2023.1.30 [The Bee Kind Update]
 - Fixed lilToon Shader not being imported properly.
 

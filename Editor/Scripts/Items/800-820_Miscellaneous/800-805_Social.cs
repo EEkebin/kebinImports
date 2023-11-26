@@ -12,10 +12,5 @@ namespace kebinImports
         {
             Application.OpenURL(JSON.Parse(File.ReadAllText(installedPath + @"/package.json"))["author"]["url2"]);
         }
-        [MenuItem("kebinImports/Social/Discord", false, 805)]
-        private static void showDiscord()
-        {
-            Application.OpenURL(JSON.Parse(File.ReadAllText(installedPath + @"/package.json"))["author"]["discord"]);
-        }
     }
 }

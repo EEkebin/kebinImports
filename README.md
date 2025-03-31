@@ -53,7 +53,7 @@
 
 ## **Licenses**
 
-> [kebinImports is licensed under the GNU General Public License v3.0.](https://github.com/EEkebin/kebinImports/blob/main/LICENSE)
+> [kebinImports is licensed under the GNU General Public License v3.0.](https://github.com/EEkebin/kebinImports/blob/main/LICENSE.md)
 
 ## **Disclaimers**
 

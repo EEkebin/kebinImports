@@ -1,0 +1,148 @@
+name: Refresh known signatures
+
+# Regenerates Editor/Scripts/Doctor/KnownSignatures.Guids.cs: the GUIDs of every component script, runtime assembly
+# and shader shipped by the latest release of each tool kebinImports knows, which the Project Doctor uses to say which
+# tool a missing script or pink material belongs to. Runs weekly and on demand, and opens a pull request when
+# anything changed. Needs Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Harvest GUIDs from the tools' latest releases
+        run: |
+          python3 - Editor/Scripts/Doctor/KnownSignatures.Guids.cs <<'EOF'
+          import io, json, os, re, sys, urllib.request, zipfile
+
+          OUT = sys.argv[1]
+          # tool key (as in ToolCatalog) -> (VPM listing, package id)
+          LISTINGS = {
+              "uts3": None,
+              "liltoon": ("https://lilxyzw.github.io/vpm-repos/vpm.json", "jp.lilxyzw.liltoon"),
+              "poiyomi": ("https://poiyomi.github.io/vpm/index.json", "com.poiyomi.toon"),
+              "modular-avatar": ("https://vpm.nadena.dev/vpm.json", "nadena.dev.modular-avatar"),
+              "ndmf": ("https://vpm.nadena.dev/vpm.json", "nadena.dev.ndmf"),
+              "vrcfury": ("https://vcc.vrcfury.com", "com.vrcfury.vrcfury"),
+              "dressingtools": ("https://vpm.chocopoi.com/index.json", "com.chocopoi.vrc.dressingtools"),
+              "apt": ("https://vpm.thry.dev/index.json", "de.thryrallo.vrc.avatar-performance-tools"),
+              "cge": ("https://hai-vr.github.io/vpm-listing/index.json", "dev.hai-vr.cge"),
+              "pumkin": ("https://rurre.github.io/vpm/index.json", "io.github.rurre.pumkinsavatartools"),
+              "gesture-manager": ("https://packages.vrchat.com/curated?download", "vrchat.blackstartx.gesture-manager"),
+              "av3emulator": ("https://packages.vrchat.com/curated?download", "lyuma.av3emulator"),
+              "vrworld-toolkit": ("https://packages.vrchat.com/curated?download", "dev.onevr.vrworldtoolkit"),
+              "audiolink": ("https://packages.vrchat.com/curated?download", "com.llealloo.audiolink"),
+              "vrcsdk-avatars": ("https://packages.vrchat.com/official?download", "com.vrchat.avatars"),
+              "vrcsdk-worlds": ("https://packages.vrchat.com/official?download", "com.vrchat.worlds"),
+              "vrcsdk-base": ("https://packages.vrchat.com/official?download", "com.vrchat.base"),
+          }
+          # Packages that are not tools of their own count as the tool that installs them.
+          ALIAS = {"ndmf": "modular-avatar", "vrcsdk-base": "vrcsdk-avatars"}
+          UNITY_BASES = {"MonoBehaviour", "ScriptableObject", "StateMachineBehaviour", "UdonSharpBehaviour", "Component", "Behaviour", "AvatarTagComponent", "VRCFuryComponent"}
+          EDITOR = (2022, 3)  # the Unity version VRChat supports
+
+          def fetch(url):
+              req = urllib.request.Request(url, headers={"User-Agent": "kebinImports-signatures"})
+              with urllib.request.urlopen(req, timeout=180) as r:
+                  return r.read()
+
+          def semver_key(v):
+              m = re.match(r"^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-(.*))?", v)
+              return (int(m.group(1)), int(m.group(2) or 0), int(m.group(3) or 0), 1 if not m.group(4) else 0, m.group(4) or "") if m else None
+
+          def unity_ok(u):
+              m = re.match(r"^(\d+)\.(\d+)", u or "")
+              return (int(m.group(1)), int(m.group(2))) <= EDITOR if m else True
+
+          listings = {}
+          def latest(url, pkg):
+              if url not in listings:
+                  listings[url] = json.loads(fetch(url).decode("utf-8-sig"))
+              best = None
+              for v, m in listings[url]["packages"][pkg]["versions"].items():
+                  k = semver_key(v)
+                  if not k or k[3] == 0 or not unity_ok(m.get("unity")): continue
+                  if best is None or k > best[0]: best = (k, v, m["url"])
+              return (best[1], best[2]) if best else (None, None)
+
+          def guid_of(z, meta):
+              m = re.search(r"^guid:\s*([0-9a-fA-F]{32})", z.read(meta).decode("utf-8", "replace"), re.M)
+              return m.group(1).lower() if m else None
+
+          entries = []
+          for tool, src in LISTINGS.items():
+              if src is None: continue
+              version, url = latest(*src)
+              if url is None:
+                  print(f"{tool:16} {src[1]}: no stable version for Unity 2022.3, skipped"); continue
+              z = zipfile.ZipFile(io.BytesIO(fetch(url)))
+              names = set(z.namelist())
+              classes, sources = {}, {}
+              for n in names:
+                  if not n.endswith(".cs") or re.search(r"(^|/)(Editor|Tests?)(/|$)", n): continue
+                  s = z.read(n).decode("utf-8", "replace"); sources[n] = s
+                  for m in re.finditer(r"\bclass\s+(\w+)\s*(?:<[^>]*>)?\s*:\s*([\w.]+)", s):
+                      classes[m.group(1)] = m.group(2).split(".")[-1]
+              def is_component(c, d=0):
+                  b = classes.get(c)
+                  if b is None or d > 6: return False
+                  return b in UNITY_BASES or is_component(b, d + 1)
+              counts = {"script": 0, "shader": 0, "assembly": 0}
+              for n in names:
+                  if not n.endswith(".meta"): continue
+                  t = n[:-5]
+                  if t.endswith(".cs") and t in sources:
+                      comps = [c for c in re.findall(r"\bclass\s+(\w+)", sources[t]) if is_component(c)]
+                      if not comps: continue
+                      kind, name = "script", comps[0]
+                  elif t.endswith(".shader") and t in names:
+                      m = re.search(r'^\s*Shader\s+"([^"]+)"', z.read(t).decode("utf-8", "replace"), re.M)
+                      kind, name = "shader", (m.group(1) if m else os.path.basename(t)[:-7])
+                  elif t.endswith(".dll") and not re.search(r"(^|/)Editor(/|$)", t):
+                      kind, name = "assembly", os.path.basename(t)[:-4]
+                  else:
+                      continue
+                  g = guid_of(z, n)
+                  if g: entries.append((g, ALIAS.get(tool, tool), kind, name)); counts[kind] += 1
+              print(f"{tool:16} {src[1]} {version}: {counts}")
+
+          seen, rows = set(), []
+          for g, tool, kind, name in sorted(entries, key=lambda e: (e[1], e[2], e[3], e[0])):
+              if g not in seen: seen.add(g); rows.append((g, tool, kind, name))
+          esc = lambda s: s.replace("\\", "\\\\").replace('"', '\\"')
+          out = ['// Generated by .github/workflows/signatures.yml from the latest VPM release of each tool. Do not edit by hand.',
+                 '// Maps the GUIDs of component scripts, runtime assemblies and shaders to the kebinImports tool that ships them,',
+                 '// so the Project Doctor can tell which tool a missing script or shader belongs to.',
+                 'using System.Collections.Generic;', '', 'namespace kebinImports', '{', '    public partial class kebinImports', '    {',
+                 '        internal static partial class KnownSignatures', '        {',
+                 '            // guid -> { tool key, kind (script | assembly | shader), name (class, assembly or shader name) }',
+                 '            internal static readonly Dictionary<string, string[]> Guids = new Dictionary<string, string[]>',
+                 '            {']
+          out += [f'                {{ "{g}", new[] {{ "{t}", "{k}", "{esc(n)}" }} }},' for g, t, k, n in rows]
+          out += ['            };', '        }', '    }', '}', '']
+          open(OUT, "w", encoding="utf-8", newline="\n").write("\n".join(out))
+          print("wrote", len(rows), "entries")
+          EOF
+
+      - name: Open a pull request if anything changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- Editor/Scripts/Doctor/KnownSignatures.Guids.cs; then echo "No changes."; exit 0; fi
+          branch="signatures/${{ github.run_id }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add Editor/Scripts/Doctor/KnownSignatures.Guids.cs
+          git commit -m "Refresh known tool signatures"
+          git push -u origin "$branch"
+          gh pr create --title "Refresh known tool signatures" --body "Regenerated from the latest releases of the tools kebinImports knows. The Project Doctor uses this table to identify missing scripts and shaders." --base main --head "$branch"

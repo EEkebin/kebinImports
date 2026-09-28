@@ -1,36 +1,50 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace kebinImports
 {
     public class HttpClient : System.Net.Http.HttpClient
     {
-        private static HttpClientHandler handler = new HttpClientHandler
+        private static readonly HttpClientHandler handler = new HttpClientHandler
         {
             AllowAutoRedirect = true,
-            PreAuthenticate = true
+            PreAuthenticate = true,
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
         };
-        public HttpClient(bool GitHubHeaders = false) : base(handler)
+        public HttpClient(bool GitHubHeaders = false) : base(handler, false)
         {
-            this.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246");
+            // Unity's Mono only negotiates TLS 1.2+ if it is explicitly enabled on older runtimes.
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+            Timeout = TimeSpan.FromMinutes(5);
+            DefaultRequestHeaders.Add("User-Agent", "kebinImports (+https://github.com/EEkebin/kebinImports)");
             if (GitHubHeaders)
-                this.DefaultRequestHeaders.Add("Authorization", "token " + Encoding.UTF8.GetString(Convert.FromBase64String("Z2hwX1RhWHA0UlFzRHdQR1RuUmhOYUtmYW1yOEgxWXI2SDRXTGdqNg==")));
+            {
+                // Unauthenticated requests to the public GitHub API are limited to 60/hour, which is plenty for a manual importer.
+                DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+                DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+            }
         }
         public static async Task DownloadFile(HttpClient client, string link, string fileNameExtension)
         {
-            var response = await client.GetAsync(link);
-            using (var fs = File.Create(fileNameExtension))
+            using (HttpResponseMessage response = await client.GetAsync(link, HttpCompletionOption.ResponseHeadersRead))
             {
-                await response.Content.CopyToAsync(fs);
+                response.EnsureSuccessStatusCode();
+                using (FileStream fs = File.Create(fileNameExtension))
+                {
+                    await response.Content.CopyToAsync(fs);
+                }
             }
         }
         public static async Task<string> DownloadString(HttpClient client, string link)
         {
-            var response = await client.GetStringAsync(link);
-            return response;
+            using (HttpResponseMessage response = await client.GetAsync(link))
+            {
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStringAsync();
+            }
         }
     }
 }

@@ -1,0 +1,377 @@
+name: Build
+
+# The whole build lives in this workflow; there are no build scripts in the repository.
+#
+# Every push and pull request builds the package artifacts so a broken package is caught before it is tagged:
+#   kebinImports.unitypackage            installs under Packages/dev.kebin.kebinimports (also what the legacy self-updater downloads)
+#   dev.kebin.kebinimports-<version>.zip the VPM package zip (package.json at the zip root)
+#   dev.kebin.kebinimports-<version>.tgz the UPM tarball (files under package/) for "Add package from tarball"
+#   package.json                         next to the zip, as VPM release listings expect
+#   release-notes.md                     the CHANGELOG.md section for this version
+#
+# Pushing a tag such as v2026.9.28 publishes a GitHub release with those files and the changelog section as body.
+# Pushes to main (and every release) also rebuild the VPM repository listing (index.json + landing page) from all releases and
+# publish it to GitHub Pages. One-time setup: Settings > Pages > Build and deployment > Source: GitHub Actions.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+env:
+  PACKAGE: dev.kebin.kebinimports
+  LISTING_URL: https://eekebin.github.io/kebinImports/index.json
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read package version
+        id: pkg
+        run: |
+          version=$(python3 -c "import json; print(json.load(open('package.json'))['version'])")
+          name=$(python3 -c "import json; print(json.load(open('package.json'))['name'])")
+          test "$name" = "$PACKAGE" || { echo "package.json name is '$name', expected '$PACKAGE'"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Building $name $version"
+
+      - name: Check that the tag matches package.json
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          test "$tag" = "${{ steps.pkg.outputs.version }}" || { echo "Tag $tag does not match package.json version ${{ steps.pkg.outputs.version }}"; exit 1; }
+
+      - name: Stage the package and generate .meta files
+        # What ships: package.json, the root documents and everything under Editor/. The repository keeps no .meta
+        # files; each one is generated here with a GUID derived from the file's path, so every build ships the same
+        # GUIDs and references between installs stay stable. Unity needs a .meta for every file in a package.
+        run: |
+          set -euo pipefail
+          rm -rf stage Output && mkdir -p stage/pkg Output
+          cp package.json *.md stage/pkg/
+          cp -r Editor stage/pkg/Editor
+          find stage/pkg -name '*.meta' -delete
+          cd stage/pkg
+          tail="  externalObjects: {}
+            userData:
+            assetBundleName:
+            assetBundleVariant: "
+          # Unity's complete default TextureImporter block, exactly as Unity 2022.3 writes it. A partial block is not safe:
+          # Unity fills missing fields with zero, and textureShape 0 turns a plain texture into a cubemap.
+          texture=$(cat <<'TEX'
+          TextureImporter:
+            internalIDToNameTable: []
+            externalObjects: {}
+            serializedVersion: 12
+            mipmaps:
+              mipMapMode: 0
+              enableMipMap: 1
+              sRGBTexture: 1
+              linearTexture: 0
+              fadeOut: 0
+              borderMipMap: 0
+              mipMapsPreserveCoverage: 0
+              alphaTestReferenceValue: 0.5
+              mipMapFadeDistanceStart: 1
+              mipMapFadeDistanceEnd: 3
+            bumpmap:
+              convertToNormalMap: 0
+              externalNormalMap: 0
+              heightScale: 0.25
+              normalMapFilter: 0
+              flipGreenChannel: 0
+            isReadable: 0
+            streamingMipmaps: 0
+            streamingMipmapsPriority: 0
+            vTOnly: 0
+            ignoreMipmapLimit: 0
+            grayScaleToAlpha: 0
+            generateCubemap: 6
+            cubemapConvolution: 0
+            seamlessCubemap: 0
+            textureFormat: 1
+            maxTextureSize: 2048
+            textureSettings:
+              serializedVersion: 2
+              filterMode: 1
+              aniso: 1
+              mipBias: 0
+              wrapU: 0
+              wrapV: 0
+              wrapW: 0
+            nPOTScale: 1
+            lightmap: 0
+            compressionQuality: 50
+            spriteMode: 0
+            spriteExtrude: 1
+            spriteMeshType: 1
+            alignment: 0
+            spritePivot: {x: 0.5, y: 0.5}
+            spritePixelsToUnits: 100
+            spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+            spriteGenerateFallbackPhysicsShape: 1
+            alphaUsage: 1
+            alphaIsTransparency: 0
+            spriteTessellationDetail: -1
+            textureType: 0
+            textureShape: 1
+            singleChannelComponent: 0
+            flipbookRows: 1
+            flipbookColumns: 1
+            maxTextureSizeSet: 0
+            compressionQualitySet: 0
+            textureFormatSet: 0
+            ignorePngGamma: 0
+            applyGammaDecoding: 0
+            swizzle: 50462976
+            cookieLightType: 0
+            platformSettings:
+            - serializedVersion: 3
+              buildTarget: DefaultTexturePlatform
+              maxTextureSize: 2048
+              resizeAlgorithm: 0
+              textureFormat: -1
+              textureCompression: 1
+              compressionQuality: 50
+              crunchedCompression: 0
+              allowsAlphaSplitting: 0
+              overridden: 0
+              ignorePlatformSupport: 0
+              androidETC2FallbackOverride: 0
+              forceMaximumCompressionQuality_BC6H_BC7: 0
+            - serializedVersion: 3
+              buildTarget: Standalone
+              maxTextureSize: 2048
+              resizeAlgorithm: 0
+              textureFormat: -1
+              textureCompression: 1
+              compressionQuality: 50
+              crunchedCompression: 0
+              allowsAlphaSplitting: 0
+              overridden: 0
+              ignorePlatformSupport: 0
+              androidETC2FallbackOverride: 0
+              forceMaximumCompressionQuality_BC6H_BC7: 0
+            - serializedVersion: 3
+              buildTarget: Android
+              maxTextureSize: 2048
+              resizeAlgorithm: 0
+              textureFormat: -1
+              textureCompression: 1
+              compressionQuality: 50
+              crunchedCompression: 0
+              allowsAlphaSplitting: 0
+              overridden: 0
+              ignorePlatformSupport: 0
+              androidETC2FallbackOverride: 0
+              forceMaximumCompressionQuality_BC6H_BC7: 0
+            spriteSheet:
+              serializedVersion: 2
+              sprites: []
+              outline: []
+              physicsShape: []
+              bones: []
+              spriteID: 
+              internalID: 0
+              vertices: []
+              indices: 
+              edges: []
+              weights: []
+              secondaryTextures: []
+              nameFileIdTable: {}
+            mipmapLimitGroupName: 
+            pSDRemoveMatte: 0
+            userData: 
+            assetBundleName: 
+            assetBundleVariant: 
+          TEX
+          )
+          find . -mindepth 1 | sort | while read -r path; do
+            rel="${path#./}"
+            guid=$(printf 'kebinImports/%s' "$rel" | md5sum | awk '{print $1}')
+            {
+              echo "fileFormatVersion: 2"
+              echo "guid: $guid"
+              if [ -d "$path" ]; then
+                echo "folderAsset: yes"; echo "DefaultImporter:"; echo "$tail"
+              else
+                case "$rel" in
+                  *.cs)     echo "MonoImporter:"; echo "  externalObjects: {}"; echo "  serializedVersion: 2"; echo "  defaultReferences: []"; echo "  executionOrder: 0"; echo "  icon: {instanceID: 0}"; echo "  userData: "; echo "  assetBundleName: "; echo "  assetBundleVariant: " ;;
+                  *.asmdef) echo "AssemblyDefinitionImporter:"; echo "$tail" ;;
+                  *.png|*.jpg|*.jpeg|*.tga|*.psd) echo "$texture" ;;
+                  *)        echo "DefaultImporter:"; echo "$tail" ;;
+                esac
+              fi
+            } > "$path.meta"
+          done
+          dupes=$(find . -name '*.meta' -exec grep -hE '^guid:' {} + | sort | uniq -d)
+          test -z "$dupes" || { echo "Duplicate GUIDs:"; echo "$dupes"; exit 1; }
+          echo "Staged $(find . -type f -not -name '*.meta' | wc -l) files, generated $(find . -name '*.meta' | wc -l) .meta files"
+
+      - name: Build the VPM zip
+        run: |
+          set -euo pipefail
+          cd stage/pkg
+          zip -q -r -X "../../Output/$PACKAGE-${{ steps.pkg.outputs.version }}.zip" .
+          python3 -c "import sys, zipfile; sys.exit(0 if 'package.json' in zipfile.ZipFile(sys.argv[1]).namelist() else 1)" "../../Output/$PACKAGE-${{ steps.pkg.outputs.version }}.zip"
+
+      - name: Build the UPM tarball
+        run: |
+          set -euo pipefail
+          mkdir -p stage/upm && cp -r stage/pkg stage/upm/package
+          tar --sort=name --owner=0 --group=0 --numeric-owner -czf "Output/$PACKAGE-${{ steps.pkg.outputs.version }}.tgz" -C stage/upm package
+
+      - name: Build the .unitypackage
+        # A .unitypackage is a gzipped tar with one folder per GUID holding the asset bytes ("asset"), its .meta
+        # ("asset.meta") and the path Unity should place it at ("pathname"). Folders have no "asset". Because every
+        # pathname starts with Packages/<name>/, Unity installs it as an embedded package instead of into Assets/.
+        run: |
+          set -euo pipefail
+          mkdir -p stage/up
+          cd stage/pkg
+          find . -mindepth 1 -not -name '*.meta' | sort | while read -r path; do
+            rel="${path#./}"
+            guid=$(grep -E '^guid:' "$path.meta" | head -1 | awk '{print tolower($2)}')
+            mkdir "../up/$guid"
+            test -d "$path" || cp "$path" "../up/$guid/asset"
+            cp "$path.meta" "../up/$guid/asset.meta"
+            printf 'Packages/%s/%s' "$PACKAGE" "$rel" > "../up/$guid/pathname"
+          done
+          cd ../up
+          tar --sort=name --owner=0 --group=0 --numeric-owner -czf ../../Output/kebinImports.unitypackage .
+          echo "$(ls | wc -l) assets packed"
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          set -euo pipefail
+          cp package.json Output/package.json
+          awk -v v="${{ steps.pkg.outputs.version }}" '
+            /^## / { if (found) exit; found = ($0 ~ "^## v" v "([^0-9.]|$)"); next }
+            found { print }
+          ' CHANGELOG.md | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > Output/release-notes.md
+          test -s Output/release-notes.md || { echo "CHANGELOG.md has no '## v${{ steps.pkg.outputs.version }}' section"; exit 1; }
+          ls -la Output
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kebinImports
+          path: Output/*
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "Output/kebinImports.unitypackage" \
+            "Output/$PACKAGE-${{ steps.pkg.outputs.version }}.zip" \
+            "Output/$PACKAGE-${{ steps.pkg.outputs.version }}.tgz" \
+            "Output/package.json" \
+            --title "kebinImports v${{ steps.pkg.outputs.version }}" \
+            --notes-file Output/release-notes.md
+          # GitHub Pages only deploys from main, so rebuild the listing there now that the release exists.
+          gh workflow run build.yml --ref main
+
+  listing:
+    # The VPM repository listing the Creator Companion reads, built from the published releases. Runs on main only
+    # (GitHub Pages deploys from main); a release triggers it by dispatching this workflow on main.
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: kebinImports
+          path: Output
+
+      - name: Build the VPM listing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p Website work
+          # Every published release that carries a VPM zip and its package.json.
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate \
+            --jq '.[] | select(.draft|not) | {tag: .tag_name, zip: (.assets[] | select(.name|test("^'"$PACKAGE"'-.+\\.zip$")) | .browser_download_url), manifest: (.assets[] | select(.name=="package.json") | .browser_download_url)}' \
+            > work/releases.jsonl || true
+          n=0
+          while read -r line; do
+            test -n "$line" || continue
+            tag=$(echo "$line" | python3 -c "import json,sys; print(json.load(sys.stdin)['tag'])")
+            zip=$(echo "$line" | python3 -c "import json,sys; print(json.load(sys.stdin)['zip'])")
+            manifest=$(echo "$line" | python3 -c "import json,sys; print(json.load(sys.stdin)['manifest'])")
+            mkdir -p "work/$tag"
+            curl -sSL -o "work/$tag/package.json" "$manifest"
+            curl -sSL -o "work/$tag/package.zip" "$zip"
+            echo "$zip" > "work/$tag/url"
+            n=$((n+1))
+          done < work/releases.jsonl
+          echo "$n release(s) with a VPM zip"
+          python3 - <<'EOF'
+          import json, os, hashlib, html, urllib.parse
+          package = os.environ["PACKAGE"]; listing_url = os.environ["LISTING_URL"]; repo = os.environ["GITHUB_REPOSITORY"]
+          versions = {}
+          for entry in sorted(os.listdir("work")):
+              d = os.path.join("work", entry)
+              if not os.path.isfile(os.path.join(d, "package.json")): continue
+              manifest = json.load(open(os.path.join(d, "package.json")))
+              manifest["url"] = open(os.path.join(d, "url")).read().strip()
+              manifest["zipSHA256"] = hashlib.sha256(open(os.path.join(d, "package.zip"), "rb").read()).hexdigest()
+              versions[manifest["version"]] = manifest
+          def key(v):
+              return [int(p) if p.isdigit() else 0 for p in v.split(".")]
+          ordered = {v: versions[v] for v in sorted(versions, key=key, reverse=True)}
+          root = json.load(open("package.json"))
+          listing = {"name": "kebinImports", "id": "dev.kebin.vpm", "author": root["author"]["name"], "url": listing_url,
+                     "packages": {package: {"versions": ordered}}}
+          json.dump(listing, open("Website/index.json", "w", encoding="utf-8"), indent=2)
+          latest = next(iter(ordered), "")
+          add = "vcc://vpm/addRepo?url=" + urllib.parse.quote(listing_url, safe="")
+          open("Website/index.html", "w", encoding="utf-8").write(f"""<!doctype html>
+          <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>kebinImports</title>
+          <style>body{{font-family:system-ui,sans-serif;max-width:640px;margin:48px auto;padding:0 16px;line-height:1.5;color:#222}}
+          a.button{{display:inline-block;padding:10px 18px;background:#5865f2;color:#fff;border-radius:6px;text-decoration:none;font-weight:600}}
+          code{{background:#f2f2f2;padding:2px 5px;border-radius:4px}} ol li{{margin-bottom:6px}}</style></head>
+          <body><h1>kebinImports</h1>
+          <p>An importer menu for the assets VRChat avatar and world creators use most, plus an AI assistant that works inside Unity.{(' Latest version: <strong>' + html.escape(latest) + '</strong>.') if latest else ''}</p>
+          <p><a class="button" href="{html.escape(add)}">Add to VCC / ALCOM</a></p>
+          <p>Or add this listing by hand: <code>{html.escape(listing_url)}</code></p>
+          <ol><li>In the Creator Companion open <em>Settings &rsaquo; Packages &rsaquo; Add Repository</em>, paste the URL above and click <em>Add</em>.</li>
+          <li>Open your project's <em>Manage Project</em> page and click <em>+</em> next to kebinImports.</li>
+          <li>In Unity, use the <em>kebinImports</em> menu.</li></ol>
+          <p>Other formats and the source: <a href="https://github.com/{repo}">github.com/{repo}</a> &middot; <a href="https://github.com/{repo}/releases/latest">latest release</a> (.unitypackage, VPM zip, UPM tarball).</p>
+          </body></html>
+          """)
+          open("Website/.nojekyll", "w").close()
+          print(f"listing has {len(ordered)} version(s): {', '.join(ordered)}")
+          EOF
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: Website
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

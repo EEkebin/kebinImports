@@ -1,4 +1,14 @@
 # ChangeLog
+## v2026.9.28 [The Everything Bagel Update]
+- Updated for Unity 2022.3.22f1 and the VRChat Creator Companion. kebinImports now installs as a package under Packages/.
+- Tools install from their official VPM listings with dependencies, so the Creator Companion can manage and update them.
+- Added the Project Doctor: finds broken, duplicate and outdated installs, pink materials and missing scripts, and tells you which tool they need.
+- Added kebinAI (kebinImports > Ask kebinAI): an AI that works in your project. Works with Ollama, LM Studio, OpenCode Zen (free models included), OpenAI and Claude.
+- Added Unity Toon Shader 3, VRCFury, Gesture Manager, Av3Emulator, VRWorld Toolkit and AudioLink.
+- Reorganized the menu into Shaders, Avatar Tools, World Tools, VRChat SDK and Legacy.
+- Windows scale with your screen resolution.
+- Lots of bug fixes.
+
 ## v2023.3.20 [The Easy Update]
 - Added Thryrallo's VRC-Avatar-Performance-Tools package to kebinImports as an optional Avatar Essential.
 - Fixed a bug that occurs when updating from older versions of kebinImports.

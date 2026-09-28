@@ -12,7 +12,7 @@ namespace kebinImports
     public partial class kebinImports
     {
         // Inspects the project for the things that break VRChat projects in practice and offers a fix for each.
-        internal static class ProjectDoctor
+        internal static partial class ProjectDoctor
         {
             internal class Finding
             {
@@ -102,6 +102,7 @@ namespace kebinImports
                 try { CheckMaterials(r); } catch (Exception e) { Note(r, "materials", e); }
                 try { CheckShaders(r); } catch (Exception e) { Note(r, "shaders", e); }
                 try { CheckMissingScripts(r); } catch (Exception e) { Note(r, "missing-scripts", e); }
+                try { CheckBundlePreview(r); } catch (Exception e) { Note(r, "bundle-preview", e); }
                 r.Findings = r.Findings.OrderBy(f => f.Severity == "error" ? 0 : f.Severity == "warning" ? 1 : 2).ToList();
                 Last = r;
                 return r;
@@ -218,6 +219,7 @@ namespace kebinImports
                     if (!scene.isLoaded) continue;
                     foreach (GameObject root in scene.GetRootGameObjects())
                     {
+                        if (IsPreviewRoot(root)) continue; // an AssetBundle preview has its own check
                         foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
                         {
                             foreach (Material m in renderer.sharedMaterials) if (m != null) set.Add(m);
@@ -385,6 +387,7 @@ namespace kebinImports
                     if (!scene.isLoaded) continue;
                     foreach (GameObject root in scene.GetRootGameObjects())
                     {
+                        if (IsPreviewRoot(root)) continue;
                         roots.Add(root);
                         foreach (Transform t in root.GetComponentsInChildren<Transform>(true)) count += GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject);
                     }

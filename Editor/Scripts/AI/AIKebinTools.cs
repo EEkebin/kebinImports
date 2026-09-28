@@ -41,7 +41,7 @@ namespace kebinImports
                     schema(new[] { "object", "string", "Scene path of the root object. Omit to use the current selection." }), a => RemoveMissingScripts(a.HasKey("object") ? a["object"].Value : null));
                 register("fix_scripting_define_symbols", "kebinImports' Fix Scripting Define Symbols: clears the project's scripting defines so the VRChat SDK, Poiyomi and other tools re-add their own. Fixes many 'missing define' compile errors. Unity recompiles afterwards.", true,
                     schema(new string[0]), _ => { FSDSHandler(true); return "Cleared the scripting define symbols; Unity is recompiling."; });
-                register("run_doctor", "kebinImports' Project Doctor: scans the project for duplicate or leftover installs, outdated tools, unmanaged packages, missing dependencies, pink materials, missing scripts, shader errors and Unity version problems. Returns findings with ids you can pass to doctor_fix.", false,
+                register("run_doctor", "kebinImports' Project Doctor: scans the project for duplicate or leftover installs, outdated tools, unmanaged packages, missing dependencies, pink materials, missing scripts, shader errors, Unity version problems, and a Load AssetBundle preview that is pink or missing components. Returns findings with ids you can pass to doctor_fix.", false,
                     schema(new string[0]), _ => ProjectDoctor.Run().ToJson().ToString(2));
                 register("doctor_fix", "Apply the fix for one Project Doctor finding by its id (from run_doctor). Some fixes make Unity recompile; finish your reply after those.", true,
                     schema(new[] { "id*", "string", "Finding id from run_doctor." }), a => ProjectDoctor.Fix(a["id"].Value));

@@ -184,7 +184,7 @@ namespace kebinImports
             private static string DoctorFix(string id, bool past)
             {
                 ProjectDoctor.Finding f = ProjectDoctor.Last != null ? ProjectDoctor.Last.Findings.FirstOrDefault(x => x.Id == id) : null;
-                if (f == null) return (past ? "Applied a Project Doctor fix" : "Apply a Project Doctor fix") + ".";
+                if (f == null || string.IsNullOrEmpty(f.FixLabel)) return (past ? "Applied a Project Doctor fix" : "Apply a Project Doctor fix") + ".";
                 return (past ? "Fixed: " : "") + f.FixLabel.TrimEnd('.') + (past ? "" : ", to fix: " + f.Title) + ".";
             }
         }

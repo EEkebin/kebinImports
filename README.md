@@ -122,6 +122,8 @@ It also knows *what* is missing. A pink material still records which shader it w
 
 The Doctor only looks at what the open scenes actually use, including the prefabs and materials in them, never at assets that just sit in the project. Safe fixes can be applied in one click; the rest ask first.
 
+It also checks a Load AssetBundle preview. An avatar built for Quest shows up pink on PC, because the shaders packed inside it only work on Quest; the Doctor switches it to this project's copies of the same shaders, or installs the tool they come from (lilToon, Poiyomi, the VRChat SDK, ...). Components that don't work because the VRChat SDK is missing get the same treatment. After an install the preview reloads by itself. The preview only lives in memory, so nothing about it is saved.
+
 ## **kebinAI**
 
 `kebinImports › Ask kebinAI` opens a chat with kebinAI, an AI that works inside your project. It can read and change materials, shaders, components (including VRChat ones such as PhysBones), scene objects and text files, and read the console to check its own work. It also knows kebinImports: it can install, update and remove tools, change the Essentials, run the Quick Fixes, and run the Project Doctor and apply its fixes.

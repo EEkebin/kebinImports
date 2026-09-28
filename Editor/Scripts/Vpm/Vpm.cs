@@ -322,6 +322,9 @@ namespace kebinImports
                         Debug.Log("[kebinImports] Installed " + v.Id + " " + v.Version + " from " + v.Listing.Name);
                         i++;
                     }
+                    // The VRChat SDK ships test scripts that need Unity's Test Framework. Creator Companion projects and
+                    // Unity Hub's templates have it, but a project without it would stop compiling.
+                    if (plan.Any(p => p.Id == "com.vrchat.base")) EnsureUnityPackage("com.unity.test-framework", "1.1.33");
                 }
                 finally
                 {
@@ -374,6 +377,20 @@ namespace kebinImports
                     foreach (KeyValuePair<string, JSONNode> dep in m["vpmDependencies"].AsObject) needed.Add(dep.Key);
                 }
                 return manifests.Keys.Where(id => !wanted.Contains(id) && !needed.Contains(id) && id != "dev.kebin.kebinimports").ToList();
+            }
+
+            // Adds a Unity registry package to Packages/manifest.json unless the project already has it.
+            private static void EnsureUnityPackage(string id, string version)
+            {
+                string file = Path.Combine(PackagesPath, "manifest.json");
+                if (!File.Exists(file) || Directory.Exists(Path.Combine(PackagesPath, id))) return;
+                JSONNode node = JSON.Parse(File.ReadAllText(file));
+                if (node == null) return;
+                if (!node.HasKey("dependencies")) node["dependencies"] = new JSONObject();
+                if (node["dependencies"].AsObject.HasKey(id)) return;
+                node["dependencies"][id] = version;
+                File.WriteAllText(file, node.ToString(2));
+                Debug.Log("[kebinImports] Added " + id + " " + version + ", which the VRChat SDK needs.");
             }
 
             // ---------------------------------------------------------------- vpm-manifest.json

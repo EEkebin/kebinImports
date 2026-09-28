@@ -3,6 +3,7 @@
 - Updated for Unity 2022.3.22f1 and the VRChat Creator Companion. kebinImports now installs as a package under Packages/.
 - Tools install from their official VPM listings with dependencies, so the Creator Companion can manage and update them.
 - Added the Project Doctor: finds broken, duplicate and outdated installs, pink materials and missing scripts, and tells you which tool they need.
+- The Project Doctor also checks Load AssetBundle previews: pink Quest avatars get this project's shaders, and it installs the shader tool or VRChat SDK a preview needs, then reloads it.
 - Added kebinAI (kebinImports > Ask kebinAI): an AI that works in your project. Works with Ollama, LM Studio, OpenCode Zen (free models included), OpenAI and Claude.
 - Added Unity Toon Shader 3, VRCFury, Gesture Manager, Av3Emulator, VRWorld Toolkit and AudioLink.
 - Reorganized the menu into Shaders, Avatar Tools, World Tools, VRChat SDK and Legacy.

@@ -70,6 +70,44 @@ namespace kebinImports
                 }
                 return null;
             }
+            private static Dictionary<string, string[]> shadersByName;
+            // By shader name, for materials that only exist in memory (such as AssetBundle previews), where no GUID is left.
+            public static Match ByShaderName(string shaderName)
+            {
+                if (string.IsNullOrEmpty(shaderName)) return null;
+                if (shadersByName == null)
+                {
+                    shadersByName = new Dictionary<string, string[]>();
+                    foreach (string[] row in Guids.Values) if (row[1] == "shader" && !shadersByName.ContainsKey(row[2])) shadersByName[row[2]] = row;
+                }
+                string[] hit;
+                if (shadersByName.TryGetValue(shaderName, out hit) || shadersByName.TryGetValue(UnlockedShaderName(shaderName), out hit))
+                    return new Match { ToolKey = hit[0], Kind = "shader", Name = hit[2], How = "name" };
+                // Shader copies generated per material keep their tool's name in theirs.
+                if (shaderName.IndexOf(".poiyomi", StringComparison.OrdinalIgnoreCase) >= 0) return new Match { ToolKey = "poiyomi", Kind = "shader", Name = ".poiyomi/Poiyomi Toon", How = "name" };
+                if (shaderName.IndexOf("lilToon", StringComparison.OrdinalIgnoreCase) >= 0) return new Match { ToolKey = "liltoon", Kind = "shader", Name = "lilToon", How = "name" };
+                return null;
+            }
+            // Poiyomi's shader optimizer renames each material's shader to "Hidden/Locked/<original name>/<id>";
+            // the original is the shader to fall back to.
+            public static string UnlockedShaderName(string shaderName)
+            {
+                const string locked = "Hidden/Locked/";
+                if (shaderName == null || !shaderName.StartsWith(locked, StringComparison.Ordinal)) return shaderName;
+                string rest = shaderName.Substring(locked.Length);
+                int slash = rest.LastIndexOf('/');
+                return slash > 0 ? rest.Substring(0, slash) : rest;
+            }
+            // By the material's own property names (the same fingerprints as for material files).
+            public static Match ByMaterial(UnityEngine.Material m)
+            {
+                if (m == null) return null;
+                foreach (Fingerprint f in Fingerprints)
+                {
+                    if (f.Kind == "shader" && f.AllOf.All(m.HasProperty)) return new Match { ToolKey = f.ToolKey, Kind = f.Kind, Name = f.Name, How = "fingerprint" };
+                }
+                return null;
+            }
             // For a material file's text: the shader GUID it references and the best identification of it.
             public static Match IdentifyMaterial(string materialYaml, out string shaderGuid)
             {

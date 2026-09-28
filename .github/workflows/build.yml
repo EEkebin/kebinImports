@@ -270,12 +270,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Title the release with the update's name from its CHANGELOG heading, e.g. "## v2026.9.28 [The Everything Bagel Update]".
+          title=$(grep -m1 "^## v${{ steps.pkg.outputs.version }}" CHANGELOG.md | sed -n 's/.*\[\(.*\)\].*/\1/p')
           gh release create "$GITHUB_REF_NAME" \
             "Output/kebinImports.unitypackage" \
             "Output/$PACKAGE-${{ steps.pkg.outputs.version }}.zip" \
             "Output/$PACKAGE-${{ steps.pkg.outputs.version }}.tgz" \
             "Output/package.json" \
-            --title "kebinImports v${{ steps.pkg.outputs.version }}" \
+            --title "${title:-kebinImports v${{ steps.pkg.outputs.version }}}" \
             --notes-file Output/release-notes.md
           # GitHub Pages only deploys from main, so rebuild the listing there now that the release exists.
           gh workflow run build.yml --ref main

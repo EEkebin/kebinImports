@@ -135,6 +135,9 @@ Pick a provider in the window's settings:
 | Provider | Notes |
 | --- | --- |
 | Ollama, LM Studio, llama.cpp server | Local and free, no key. Use a model that supports tool calling, for example `qwen3`. kebinAI sizes Ollama's context to the conversation, so smaller GPUs work too. |
+| Google Gemini (free tier) | **The best free option.** Free API key from [aistudio.google.com](https://aistudio.google.com), no credit card. Uses Gemini 3.1 Flash-Lite by default, which handles kebinAI's tools well and has the most free requests; the bigger Flash models allow only about 20 free requests a day. Google may use free-tier conversations to improve its products. |
+| OpenRouter (free models) | Free key from [openrouter.ai](https://openrouter.ai/keys). `openrouter/free` picks a free model that can use tools; about 50 requests a day, and one answer can take several. |
+| Groq (paid tier) | Very fast, but needs Groq's paid Developer tier: its free tier allows about 7,000 tokens per request, less than kebinAI's instructions and tools need. |
 | OpenCode Zen | Your Zen API key; models bill your Zen balance. OpenCode's free models only work inside the OpenCode app itself. |
 | OpenAI, Anthropic (Claude) | Your own API key. |
 | Custom | Any OpenAI-compatible server (vLLM, Jan, text-generation-webui, ...). |

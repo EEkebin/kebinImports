@@ -5,6 +5,7 @@
 - kebinAI can edit any asset, such as expression menus and parameters, and won't add a second PhysBone to bones that already have one.
 - kebinAI works with Ollama on smaller GPUs: it now sets the context size so long conversations aren't cut off.
 - OpenCode's free models only work inside the OpenCode app now, so kebinAI says so clearly instead of blaming your API key.
+- New kebinAI providers: Google Gemini (free tier, the best free option) and OpenRouter (free models), plus Groq for its paid tier. When a service says to slow down, kebinAI waits and tries again.
 
 ## v2026.9.28 [The Everything Bagel Update]
 - Updated for Unity 2022.3.22f1 and the VRChat Creator Companion. kebinImports now installs as a package under Packages/.

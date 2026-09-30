@@ -127,7 +127,7 @@ namespace kebinImports
                 }
                 if (!string.IsNullOrEmpty(settings.PresetInfo.Hint)) EditorGUILayout.HelpBox(settings.PresetInfo.Hint, MessageType.None);
                 settings.BaseUrl = EditorGUILayout.TextField("Base URL", settings.BaseUrl);
-                if (settings.PresetInfo.NeedsKey || settings.Protocol == AIProtocol.Anthropic || settings.ApiKey.Length > 0 || settings.Preset == AIPresets.Length - 1)
+                if (settings.PresetInfo.NeedsKey || settings.Protocol == AIProtocol.Anthropic || settings.ApiKey.Length > 0 || settings.PresetInfo.Id == "custom")
                 {
                     settings.ApiKey = EditorGUILayout.PasswordField("API key", settings.ApiKey);
                 }

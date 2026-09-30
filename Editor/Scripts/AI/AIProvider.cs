@@ -32,6 +32,7 @@ namespace kebinImports
 
         internal class AIPreset
         {
+            public string Id;   // stable key for saved settings; never change it
             public string Name;
             public AIProtocol Protocol = AIProtocol.OpenAICompatible;
             public string BaseUrl;
@@ -45,12 +46,44 @@ namespace kebinImports
 
         internal static readonly AIPreset[] AIPresets =
         {
-            new AIPreset { Name = "Ollama (local)", Protocol = AIProtocol.Ollama, BaseUrl = "http://localhost:11434", Hint = "Run 'ollama serve', then pull a model that supports tool calling (for example 'ollama pull qwen3'). Click Models to list what is installed." },
-            new AIPreset { Name = "LM Studio (local)", BaseUrl = "http://localhost:1234/v1", Hint = "Start the server on LM Studio's Developer tab and load a model that supports tool calling." },
-            new AIPreset { Name = "llama.cpp server (local)", BaseUrl = "http://localhost:8080/v1", Hint = "Start llama-server with --jinja so the model can call tools." },
+            new AIPreset { Id = "ollama", Name = "Ollama (local)", Protocol = AIProtocol.Ollama, BaseUrl = "http://localhost:11434", Hint = "Run 'ollama serve', then pull a model that supports tool calling (for example 'ollama pull qwen3'). Click Models to list what is installed." },
+            new AIPreset { Id = "lmstudio", Name = "LM Studio (local)", BaseUrl = "http://localhost:1234/v1", Hint = "Start the server on LM Studio's Developer tab and load a model that supports tool calling." },
+            new AIPreset { Id = "llamacpp", Name = "llama.cpp server (local)", BaseUrl = "http://localhost:8080/v1", Hint = "Start llama-server with --jinja so the model can call tools." },
             new AIPreset
             {
-                Name = "OpenCode Zen", BaseUrl = "https://opencode.ai/zen/v1", DefaultModel = "claude-sonnet-5", NeedsKey = true,
+                Id = "gemini", Name = "Google Gemini (free tier)", BaseUrl = "https://generativelanguage.googleapis.com/v1beta/openai", DefaultModel = "gemini-3.1-flash-lite", NeedsKey = true,
+                Hint = "Free: get an API key at aistudio.google.com (sign in with Google, no credit card needed). Free use has daily limits per model: Flash-Lite allows plenty, the bigger Flash models only about 20 requests a day (a kebinAI answer takes several). Google may use free-tier conversations to improve its products.",
+                // Flash-Lite is the default: it handles kebinAI's tools well and has the most free requests.
+                KnownModels = new[]
+                {
+                    new AIKnownModel("gemini-3.1-flash-lite", "Gemini 3.1 Flash-Lite"),
+                    new AIKnownModel("gemini-flash-lite-latest", "Gemini Flash-Lite (latest)"),
+                    new AIKnownModel("gemini-3.5-flash", "Gemini 3.5 Flash (about 20 free requests a day)"),
+                },
+            },
+            new AIPreset
+            {
+                Id = "groq", Name = "Groq (paid tier)", BaseUrl = "https://api.groq.com/openai/v1", DefaultModel = "qwen/qwen3.8-27b", NeedsKey = true,
+                Hint = "Very fast, but needs Groq's paid Developer tier: its free tier allows about 7,000 tokens per request, and kebinAI's instructions and tools alone are bigger than that. For free, use Google Gemini or OpenRouter. Key from console.groq.com.",
+                KnownModels = new[]
+                {
+                    new AIKnownModel("qwen/qwen3.8-27b", "Qwen 3.8 27B"),
+                    new AIKnownModel("openai/gpt-oss-120b", "GPT-OSS 120B"),
+                    new AIKnownModel("openai/gpt-oss-20b", "GPT-OSS 20B"),
+                },
+            },
+            new AIPreset
+            {
+                Id = "openrouter", Name = "OpenRouter (free models)", BaseUrl = "https://openrouter.ai/api/v1", DefaultModel = "openrouter/free", NeedsKey = true,
+                Hint = "Free: get a key at openrouter.ai/keys. The model 'openrouter/free' picks a free model that can use kebinAI's tools. Free use is limited to about 50 requests a day (one kebinAI answer can take several); a one-time $10 credit purchase raises it to 1,000.",
+                KnownModels = new[]
+                {
+                    new AIKnownModel("openrouter/free", "Any free model (automatic)"),
+                },
+            },
+            new AIPreset
+            {
+                Id = "zen", Name = "OpenCode Zen", BaseUrl = "https://opencode.ai/zen/v1", DefaultModel = "claude-sonnet-5", NeedsKey = true,
                 Hint = "Sign in at opencode.ai/zen and copy your API key; models bill your Zen balance. (OpenCode's free models only work inside the OpenCode app itself. For free, run a model on this computer with Ollama or LM Studio.)",
                 // Click Models to see everything Zen offers.
                 KnownModels = new[]
@@ -60,10 +93,10 @@ namespace kebinImports
                     new AIKnownModel("gpt-5.5", "GPT-5.5"),
                 },
             },
-            new AIPreset { Name = "OpenAI", BaseUrl = "https://api.openai.com/v1", NeedsKey = true, Hint = "Any chat model that supports function calling. Click Models to list them." },
+            new AIPreset { Id = "openai", Name = "OpenAI", BaseUrl = "https://api.openai.com/v1", NeedsKey = true, Hint = "Any chat model that supports function calling. Click Models to list them." },
             new AIPreset
             {
-                Name = "Anthropic (Claude)", Protocol = AIProtocol.Anthropic, BaseUrl = "https://api.anthropic.com", DefaultModel = "claude-opus-5", NeedsKey = true,
+                Id = "anthropic", Name = "Anthropic (Claude)", Protocol = AIProtocol.Anthropic, BaseUrl = "https://api.anthropic.com", DefaultModel = "claude-opus-5", NeedsKey = true,
                 Hint = "API key from console.anthropic.com.",
                 KnownModels = new[]
                 {
@@ -73,7 +106,7 @@ namespace kebinImports
                     new AIKnownModel("claude-fable-5-1", "Claude Fable 5.1"),
                 },
             },
-            new AIPreset { Name = "Custom (OpenAI-compatible)", BaseUrl = "http://localhost:8000/v1", Hint = "Any server that implements POST /chat/completions with tools (vLLM, text-generation-webui, Jan, ...)." },
+            new AIPreset { Id = "custom", Name = "Custom (OpenAI-compatible)", BaseUrl = "http://localhost:8000/v1", Hint = "Any server that implements POST /chat/completions with tools (vLLM, text-generation-webui, Jan, ...)." },
         };
 
         internal class AISettings
@@ -90,10 +123,15 @@ namespace kebinImports
             public AIPreset PresetInfo => AIPresets[Mathf.Clamp(Preset, 0, AIPresets.Length - 1)];
             public AIProtocol Protocol => PresetInfo.Protocol;
 
+            // Settings used to be saved by the provider's position in the list; this was the list then.
+            private static readonly string[] LegacyPresetOrder = { "ollama", "lmstudio", "llamacpp", "zen", "openai", "anthropic", "custom" };
+            private static int PresetIndex(string id) => Math.Max(0, Array.FindIndex(AIPresets, p => p.Id == id));
+
             public static AISettings Load()
             {
                 AISettings s = new AISettings();
-                s.Preset = Mathf.Clamp(EditorPrefs.GetInt(Prefix + "preset", 0), 0, AIPresets.Length - 1);
+                if (EditorPrefs.HasKey(Prefix + "presetId")) s.Preset = PresetIndex(EditorPrefs.GetString(Prefix + "presetId", "ollama"));
+                else s.Preset = PresetIndex(LegacyPresetOrder[Mathf.Clamp(EditorPrefs.GetInt(Prefix + "preset", 0), 0, LegacyPresetOrder.Length - 1)]);
                 s.AskBeforeChanges = EditorPrefs.GetBool(Prefix + "askBeforeChanges", true);
                 s.MaxSteps = EditorPrefs.GetInt(Prefix + "maxSteps", 30);
                 s.MaxTokens = EditorPrefs.GetInt(Prefix + "maxTokens", 8192);
@@ -104,18 +142,26 @@ namespace kebinImports
             // Base URL, key and model are remembered per preset so switching back and forth loses nothing.
             public void LoadPresetValues()
             {
-                string p = Prefix + Preset + ".";
-                BaseUrl = EditorPrefs.GetString(p + "baseUrl", PresetInfo.BaseUrl);
-                ApiKey = Unprotect(EditorPrefs.GetString(p + "apiKey", ""));
-                Model = EditorPrefs.GetString(p + "model", PresetInfo.DefaultModel);
+                string p = Prefix + PresetInfo.Id + ".";
+                int legacy = Array.IndexOf(LegacyPresetOrder, PresetInfo.Id);
+                string old = legacy >= 0 ? Prefix + legacy + "." : null;
+                BaseUrl = Pref(p + "baseUrl", old != null ? old + "baseUrl" : null, PresetInfo.BaseUrl);
+                ApiKey = Unprotect(Pref(p + "apiKey", old != null ? old + "apiKey" : null, ""));
+                Model = Pref(p + "model", old != null ? old + "model" : null, PresetInfo.DefaultModel);
+            }
+            private static string Pref(string key, string legacyKey, string fallback)
+            {
+                if (EditorPrefs.HasKey(key)) return EditorPrefs.GetString(key, fallback);
+                if (legacyKey != null && EditorPrefs.HasKey(legacyKey)) return EditorPrefs.GetString(legacyKey, fallback);
+                return fallback;
             }
             public void Save()
             {
-                EditorPrefs.SetInt(Prefix + "preset", Preset);
+                EditorPrefs.SetString(Prefix + "presetId", PresetInfo.Id);
                 EditorPrefs.SetBool(Prefix + "askBeforeChanges", AskBeforeChanges);
                 EditorPrefs.SetInt(Prefix + "maxSteps", MaxSteps);
                 EditorPrefs.SetInt(Prefix + "maxTokens", MaxTokens);
-                string p = Prefix + Preset + ".";
+                string p = Prefix + PresetInfo.Id + ".";
                 EditorPrefs.SetString(p + "baseUrl", BaseUrl ?? "");
                 EditorPrefs.SetString(p + "apiKey", Protect(ApiKey ?? ""));
                 EditorPrefs.SetString(p + "model", Model ?? "");
@@ -158,6 +204,9 @@ namespace kebinImports
             public string Id;
             public string Name;
             public JSONNode Arguments;
+            // Provider data that must go back unchanged with this call, such as Gemini's thought signature
+            // (tool_calls[].extra_content); without it Gemini rejects the next request.
+            public JSONNode Extra;
         }
 
         // Provider-neutral conversation entry. Role is "user", "assistant" or "tool".
@@ -187,6 +236,7 @@ namespace kebinImports
                         jc["id"] = c.Id;
                         jc["name"] = c.Name;
                         jc["arguments"] = c.Arguments ?? new JSONObject();
+                        if (c.Extra != null) jc["extra"] = c.Extra;
                         calls.Add(jc);
                     }
                     o["toolCalls"] = calls;
@@ -205,7 +255,7 @@ namespace kebinImports
                 {
                     foreach (JSONNode jc in o["toolCalls"].Children)
                     {
-                        m.ToolCalls.Add(new AIToolCall { Id = jc["id"].Value, Name = jc["name"].Value, Arguments = jc["arguments"] });
+                        m.ToolCalls.Add(new AIToolCall { Id = jc["id"].Value, Name = jc["name"].Value, Arguments = jc["arguments"], Extra = jc.HasKey("extra") ? jc["extra"] : null });
                     }
                 }
                 if (o.HasKey("toolCallId")) m.ToolCallId = o["toolCallId"].Value;
@@ -250,6 +300,7 @@ namespace kebinImports
                 foreach (JSONNode m in data.Children)
                 {
                     string id = m.HasKey("id") ? m["id"].Value : (m.HasKey("name") ? m["name"].Value : m.Value);
+                    if (id.StartsWith("models/")) id = id.Substring(7);
                     if (!string.IsNullOrEmpty(id)) models.Add(id);
                 }
                 models.Sort(StringComparer.OrdinalIgnoreCase);
@@ -291,6 +342,7 @@ namespace kebinImports
                                     fn["name"] = c.Name;
                                     fn["arguments"] = (c.Arguments ?? new JSONObject()).ToString();
                                     jc["function"] = fn;
+                                    if (c.Extra != null) jc["extra_content"] = c.Extra;
                                     calls.Add(jc);
                                 }
                                 jm["tool_calls"] = calls;
@@ -353,6 +405,7 @@ namespace kebinImports
                         if (args.IsString) call.Arguments = JSON.Parse(args.Value) ?? new JSONObject();
                         else if (args.IsObject) call.Arguments = args;
                         else call.Arguments = new JSONObject();
+                        if (jc.HasKey("extra_content") && !jc["extra_content"].IsNull) call.Extra = jc["extra_content"];
                         result.ToolCalls.Add(call);
                     }
                 }
@@ -593,7 +646,7 @@ namespace kebinImports
             }
 
             // ---------------------------------------------------------------- HTTP
-            private static async Task<JSONNode> SendAsync(AISettings settings, HttpMethod method, string url, JSONNode body, CancellationToken ct)
+            private static async Task<JSONNode> SendAsync(AISettings settings, HttpMethod method, string url, JSONNode body, CancellationToken ct, int attempt = 0)
             {
                 using (HttpRequestMessage request = new HttpRequestMessage(method, url))
                 {
@@ -607,6 +660,7 @@ namespace kebinImports
                         request.Headers.Add("Authorization", "Bearer " + settings.ApiKey);
                     }
                     if (body != null) request.Content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
+                    if (url.Contains("openrouter.ai")) request.Headers.Add("X-Title", "kebinImports");
                     HttpResponseMessage response;
                     try
                     {
@@ -623,6 +677,21 @@ namespace kebinImports
                     using (response)
                     {
                         string text = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        // Free tiers limit requests per minute. Wait as long as the service asks (up to a minute) and
+                        // try again, a few times, instead of failing the whole answer.
+                        // An overloaded service (503) gets the same treatment, with a shorter default wait.
+                        int code = (int)response.StatusCode;
+                        bool daily = code == 429 && text.IndexOf("PerDay", StringComparison.OrdinalIgnoreCase) >= 0;
+                        if ((code == 429 && !daily || code == 503) && attempt < 3)
+                        {
+                            TimeSpan wait = response.Headers.RetryAfter != null && response.Headers.RetryAfter.Delta.HasValue ? response.Headers.RetryAfter.Delta.Value : TimeSpan.FromSeconds(code == 503 ? 8 : 20);
+                            if (wait <= TimeSpan.FromSeconds(65))
+                            {
+                                Debug.Log("[kebinImports] kebinAI: " + new Uri(url).Host + " asked to slow down; trying again in " + Math.Ceiling(wait.TotalSeconds) + " seconds.");
+                                await Task.Delay(wait + TimeSpan.FromSeconds(1), ct).ConfigureAwait(false);
+                                return await SendAsync(settings, method, url, body, ct, attempt + 1).ConfigureAwait(false);
+                            }
+                        }
                         if (!response.IsSuccessStatusCode)
                         {
                             Debug.LogWarning("[kebinImports] kebinAI request failed (HTTP " + (int)response.StatusCode + ") at " + url + ": " + Truncate(text, 800));
@@ -645,6 +714,11 @@ namespace kebinImports
                 bool zen = (settings.BaseUrl ?? "").Contains("opencode.ai");
                 if ((body ?? "").IndexOf("free tier", StringComparison.OrdinalIgnoreCase) >= 0 || zen && status == 403 && string.IsNullOrWhiteSpace(settings.ApiKey))
                     return "OpenCode's free models only work inside the OpenCode app, so kebinAI can't use them. Use a Zen model with your Zen API key, or run a free model on this computer with Ollama or LM Studio.";
+                if (status == 429 && (body ?? "").IndexOf("PerDay", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return "You've used today's free requests for " + settings.Model + " on " + settings.PresetInfo.Name + ". They reset tomorrow; until then pick another model in kebinAI's Settings (Flash-Lite models allow the most free requests) or use a local model.";
+                // Google answers a bad key with 400 rather than 401.
+                if (status == 400 && ((body ?? "").IndexOf("valid API key", StringComparison.OrdinalIgnoreCase) >= 0 || (body ?? "").Contains("API_KEY_INVALID")))
+                    return "The API key was not accepted. Open kebinAI's Settings and check the key for " + settings.PresetInfo.Name + ".";
                 if (settings.Protocol == AIProtocol.Ollama && status == 404) return "Ollama doesn't have the model \"" + settings.Model + "\". Download it with 'ollama pull " + settings.Model + "', or pick one of your models in kebinAI's Settings (the Models button lists them).";
                 switch (status)
                 {
@@ -654,7 +728,9 @@ namespace kebinImports
                     case 404: return "The AI service doesn't know the model \"" + settings.Model + "\". Pick another model in kebinAI's Settings (the Models button lists them).";
                     case 408:
                     case 504: return "The AI service took too long to answer. Try again in a moment.";
-                    case 413: return "The conversation got too long for this model. Click New chat and try again.";
+                    case 413:
+                        if ((settings.BaseUrl ?? "").Contains("groq.com")) return "Groq's free tier only allows about 7,000 tokens per request, and kebinAI's instructions and tools alone are bigger than that. Use Groq's paid Developer tier, or pick Google Gemini (free tier) or OpenRouter (free models) in kebinAI's Settings.";
+                        return "The conversation got too long for this model. Click New chat and try again.";
                     case 429: return "The AI service says you're sending too many requests, or you've hit your limit. Wait a minute and try again.";
                     default:
                         if (status >= 500) return "The AI service is having problems right now (error " + status + "). Try again in a moment.";

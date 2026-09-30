@@ -235,6 +235,16 @@ namespace kebinImports
             }
 
             public static bool IsKnownPackage(string packageId) => AllListings().Any(l => l.Versions(packageId).Any());
+            // The name people know a package by, from any listing that has it; the id when none does.
+            public static string DisplayNameOf(string packageId)
+            {
+                foreach (VpmListing l in AllListings())
+                {
+                    VpmPackageVersion v = l.Versions(packageId).FirstOrDefault();
+                    if (v != null && !string.IsNullOrEmpty(v.DisplayName)) return v.DisplayName;
+                }
+                return packageId;
+            }
 
             // Everything that has to be installed for packageId, dependencies first. Already satisfied packages are skipped.
             public static List<VpmPackageVersion> Plan(string packageId, string range = null, bool allowPrerelease = false, bool update = false)
@@ -259,7 +269,7 @@ namespace kebinImports
                 if (pick == null)
                 {
                     if (have) return; // installed but not in any listing (user package); leave it alone
-                    throw new Exception("PLAIN:There's no version of " + packageId + " that works with Unity " + EditorVersion() + ".");
+                    throw new Exception("PLAIN:There's no version of " + DisplayNameOf(packageId) + " that works with Unity " + EditorVersion() + ".");
                 }
                 if (have && SemVer.TryParse(installedVersion) != null && pick.SemVer.CompareTo(SemVer.TryParse(installedVersion)) <= 0 && !(isRoot && update)) return;
                 foreach (KeyValuePair<string, string> dep in pick.Dependencies)
@@ -288,7 +298,7 @@ namespace kebinImports
                     int i = 0;
                     foreach (VpmPackageVersion v in plan)
                     {
-                        EditorUtility.DisplayProgressBar("kebinImports", "Downloading " + v.Id + " " + v.Version + "…", (float)i / plan.Count);
+                        EditorUtility.DisplayProgressBar("kebinImports", "Downloading " + (string.IsNullOrEmpty(v.DisplayName) ? v.Id : v.DisplayName) + " " + v.Version + "…", (float)i / plan.Count);
                         string zip = Path.Combine(DownloadPath, v.Id + "-" + v.Version + ".zip");
                         client = new HttpClient();
                         Task.Run(() => HttpClient.DownloadFile(client, v.Url, zip)).Wait();
@@ -301,7 +311,7 @@ namespace kebinImports
                                 throw new Exception("PLAIN:The download of " + (string.IsNullOrEmpty(v.DisplayName) ? v.Id : v.DisplayName) + " arrived damaged, so it wasn't installed. Please try again.");
                             }
                         }
-                        EditorUtility.DisplayProgressBar("kebinImports", "Installing " + v.Id + " " + v.Version + "…", (float)(i + 0.5f) / plan.Count);
+                        EditorUtility.DisplayProgressBar("kebinImports", "Installing " + (string.IsNullOrEmpty(v.DisplayName) ? v.Id : v.DisplayName) + " " + v.Version + "…", (float)(i + 0.5f) / plan.Count);
                         string target = PackageFolder(v.Id);
                         materials.AddRange(SnapshotMaterials(v.Id));
                         DeleteDirectory(target);
@@ -377,7 +387,11 @@ namespace kebinImports
                     if (!m.HasKey("vpmDependencies")) continue;
                     foreach (KeyValuePair<string, JSONNode> dep in m["vpmDependencies"].AsObject) needed.Add(dep.Key);
                 }
-                return manifests.Keys.Where(id => !wanted.Contains(id) && !needed.Contains(id) && id != "dev.kebin.kebinimports").ToList();
+                // Only packages the Creator Companion (or kebinImports) installed and locked can be leftovers; packages the
+                // user placed under Packages/ by hand, and the Creator Companion's own resolver, never are.
+                HashSet<string> locked = new HashSet<string>();
+                if (vpm != null && vpm.HasKey("locked")) foreach (KeyValuePair<string, JSONNode> kv in vpm["locked"].AsObject) locked.Add(kv.Key);
+                return manifests.Keys.Where(id => locked.Contains(id) && !wanted.Contains(id) && !needed.Contains(id) && id != "dev.kebin.kebinimports" && !id.StartsWith("com.vrchat.core.")).ToList();
             }
 
             // Adds a Unity registry package to Packages/manifest.json unless the project already has it.

@@ -2,7 +2,7 @@ name: Build
 
 # The whole build lives in this workflow; there are no build scripts in the repository.
 #
-# Every push and pull request builds the package artifacts so a broken package is caught before it is tagged:
+# Every push builds the package artifacts (the steps live in package.yml; pull requests run them through check.yml):
 #   kebinImports.unitypackage            installs under Packages/dev.kebin.kebinimports (also what the legacy self-updater downloads)
 #   dev.kebin.kebinimports-<version>.zip the VPM package zip (package.json at the zip root)
 #   dev.kebin.kebinimports-<version>.tgz the UPM tarball (files under package/) for "Add package from tarball"
@@ -16,7 +16,6 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-  pull_request:
   workflow_dispatch:
 
 env:
@@ -25,6 +24,14 @@ env:
 
 jobs:
   build:
+    uses: ./.github/workflows/package.yml
+    permissions:
+      contents: read
+
+  release:
+    # Publishes the GitHub release for a version tag, from the artifacts the build job made.
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -32,252 +39,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read package version
-        id: pkg
-        run: |
-          version=$(python3 -c "import json; print(json.load(open('package.json'))['version'])")
-          name=$(python3 -c "import json; print(json.load(open('package.json'))['name'])")
-          test "$name" = "$PACKAGE" || { echo "package.json name is '$name', expected '$PACKAGE'"; exit 1; }
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "Building $name $version"
-
-      - name: Check that the tag matches package.json
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          tag="${GITHUB_REF_NAME#v}"
-          test "$tag" = "${{ steps.pkg.outputs.version }}" || { echo "Tag $tag does not match package.json version ${{ steps.pkg.outputs.version }}"; exit 1; }
-
-      - name: Stage the package and generate .meta files
-        # What ships: package.json, the root documents and everything under Editor/. The repository keeps no .meta
-        # files; each one is generated here with a GUID derived from the file's path, so every build ships the same
-        # GUIDs and references between installs stay stable. Unity needs a .meta for every file in a package.
-        run: |
-          set -euo pipefail
-          rm -rf stage Output && mkdir -p stage/pkg Output
-          cp package.json *.md stage/pkg/
-          cp -r Editor stage/pkg/Editor
-          find stage/pkg -name '*.meta' -delete
-          cd stage/pkg
-          tail="  externalObjects: {}
-            userData:
-            assetBundleName:
-            assetBundleVariant: "
-          # Unity's complete default TextureImporter block, exactly as Unity 2022.3 writes it. A partial block is not safe:
-          # Unity fills missing fields with zero, and textureShape 0 turns a plain texture into a cubemap.
-          texture=$(cat <<'TEX'
-          TextureImporter:
-            internalIDToNameTable: []
-            externalObjects: {}
-            serializedVersion: 12
-            mipmaps:
-              mipMapMode: 0
-              enableMipMap: 1
-              sRGBTexture: 1
-              linearTexture: 0
-              fadeOut: 0
-              borderMipMap: 0
-              mipMapsPreserveCoverage: 0
-              alphaTestReferenceValue: 0.5
-              mipMapFadeDistanceStart: 1
-              mipMapFadeDistanceEnd: 3
-            bumpmap:
-              convertToNormalMap: 0
-              externalNormalMap: 0
-              heightScale: 0.25
-              normalMapFilter: 0
-              flipGreenChannel: 0
-            isReadable: 0
-            streamingMipmaps: 0
-            streamingMipmapsPriority: 0
-            vTOnly: 0
-            ignoreMipmapLimit: 0
-            grayScaleToAlpha: 0
-            generateCubemap: 6
-            cubemapConvolution: 0
-            seamlessCubemap: 0
-            textureFormat: 1
-            maxTextureSize: 2048
-            textureSettings:
-              serializedVersion: 2
-              filterMode: 1
-              aniso: 1
-              mipBias: 0
-              wrapU: 0
-              wrapV: 0
-              wrapW: 0
-            nPOTScale: 1
-            lightmap: 0
-            compressionQuality: 50
-            spriteMode: 0
-            spriteExtrude: 1
-            spriteMeshType: 1
-            alignment: 0
-            spritePivot: {x: 0.5, y: 0.5}
-            spritePixelsToUnits: 100
-            spriteBorder: {x: 0, y: 0, z: 0, w: 0}
-            spriteGenerateFallbackPhysicsShape: 1
-            alphaUsage: 1
-            alphaIsTransparency: 0
-            spriteTessellationDetail: -1
-            textureType: 0
-            textureShape: 1
-            singleChannelComponent: 0
-            flipbookRows: 1
-            flipbookColumns: 1
-            maxTextureSizeSet: 0
-            compressionQualitySet: 0
-            textureFormatSet: 0
-            ignorePngGamma: 0
-            applyGammaDecoding: 0
-            swizzle: 50462976
-            cookieLightType: 0
-            platformSettings:
-            - serializedVersion: 3
-              buildTarget: DefaultTexturePlatform
-              maxTextureSize: 2048
-              resizeAlgorithm: 0
-              textureFormat: -1
-              textureCompression: 1
-              compressionQuality: 50
-              crunchedCompression: 0
-              allowsAlphaSplitting: 0
-              overridden: 0
-              ignorePlatformSupport: 0
-              androidETC2FallbackOverride: 0
-              forceMaximumCompressionQuality_BC6H_BC7: 0
-            - serializedVersion: 3
-              buildTarget: Standalone
-              maxTextureSize: 2048
-              resizeAlgorithm: 0
-              textureFormat: -1
-              textureCompression: 1
-              compressionQuality: 50
-              crunchedCompression: 0
-              allowsAlphaSplitting: 0
-              overridden: 0
-              ignorePlatformSupport: 0
-              androidETC2FallbackOverride: 0
-              forceMaximumCompressionQuality_BC6H_BC7: 0
-            - serializedVersion: 3
-              buildTarget: Android
-              maxTextureSize: 2048
-              resizeAlgorithm: 0
-              textureFormat: -1
-              textureCompression: 1
-              compressionQuality: 50
-              crunchedCompression: 0
-              allowsAlphaSplitting: 0
-              overridden: 0
-              ignorePlatformSupport: 0
-              androidETC2FallbackOverride: 0
-              forceMaximumCompressionQuality_BC6H_BC7: 0
-            spriteSheet:
-              serializedVersion: 2
-              sprites: []
-              outline: []
-              physicsShape: []
-              bones: []
-              spriteID: 
-              internalID: 0
-              vertices: []
-              indices: 
-              edges: []
-              weights: []
-              secondaryTextures: []
-              nameFileIdTable: {}
-            mipmapLimitGroupName: 
-            pSDRemoveMatte: 0
-            userData: 
-            assetBundleName: 
-            assetBundleVariant: 
-          TEX
-          )
-          find . -mindepth 1 | sort | while read -r path; do
-            rel="${path#./}"
-            guid=$(printf 'kebinImports/%s' "$rel" | md5sum | awk '{print $1}')
-            {
-              echo "fileFormatVersion: 2"
-              echo "guid: $guid"
-              if [ -d "$path" ]; then
-                echo "folderAsset: yes"; echo "DefaultImporter:"; echo "$tail"
-              else
-                case "$rel" in
-                  *.cs)     echo "MonoImporter:"; echo "  externalObjects: {}"; echo "  serializedVersion: 2"; echo "  defaultReferences: []"; echo "  executionOrder: 0"; echo "  icon: {instanceID: 0}"; echo "  userData: "; echo "  assetBundleName: "; echo "  assetBundleVariant: " ;;
-                  *.asmdef) echo "AssemblyDefinitionImporter:"; echo "$tail" ;;
-                  *.png|*.jpg|*.jpeg|*.tga|*.psd) echo "$texture" ;;
-                  *)        echo "DefaultImporter:"; echo "$tail" ;;
-                esac
-              fi
-            } > "$path.meta"
-          done
-          dupes=$(find . -name '*.meta' -exec grep -hE '^guid:' {} + | sort | uniq -d)
-          test -z "$dupes" || { echo "Duplicate GUIDs:"; echo "$dupes"; exit 1; }
-          echo "Staged $(find . -type f -not -name '*.meta' | wc -l) files, generated $(find . -name '*.meta' | wc -l) .meta files"
-
-      - name: Build the VPM zip
-        run: |
-          set -euo pipefail
-          cd stage/pkg
-          zip -q -r -X "../../Output/$PACKAGE-${{ steps.pkg.outputs.version }}.zip" .
-          python3 -c "import sys, zipfile; sys.exit(0 if 'package.json' in zipfile.ZipFile(sys.argv[1]).namelist() else 1)" "../../Output/$PACKAGE-${{ steps.pkg.outputs.version }}.zip"
-
-      - name: Build the UPM tarball
-        run: |
-          set -euo pipefail
-          mkdir -p stage/upm && cp -r stage/pkg stage/upm/package
-          tar --sort=name --owner=0 --group=0 --numeric-owner -czf "Output/$PACKAGE-${{ steps.pkg.outputs.version }}.tgz" -C stage/upm package
-
-      - name: Build the .unitypackage
-        # A .unitypackage is a gzipped tar with one folder per GUID holding the asset bytes ("asset"), its .meta
-        # ("asset.meta") and the path Unity should place it at ("pathname"). Folders have no "asset". Because every
-        # pathname starts with Packages/<name>/, Unity installs it as an embedded package instead of into Assets/.
-        run: |
-          set -euo pipefail
-          mkdir -p stage/up
-          cd stage/pkg
-          find . -mindepth 1 -not -name '*.meta' | sort | while read -r path; do
-            rel="${path#./}"
-            guid=$(grep -E '^guid:' "$path.meta" | head -1 | awk '{print tolower($2)}')
-            mkdir "../up/$guid"
-            test -d "$path" || cp "$path" "../up/$guid/asset"
-            cp "$path.meta" "../up/$guid/asset.meta"
-            printf 'Packages/%s/%s' "$PACKAGE" "$rel" > "../up/$guid/pathname"
-          done
-          cd ../up
-          tar --sort=name --owner=0 --group=0 --numeric-owner -czf ../../Output/kebinImports.unitypackage .
-          echo "$(ls | wc -l) assets packed"
-
-      - name: Release notes from CHANGELOG.md
-        run: |
-          set -euo pipefail
-          cp package.json Output/package.json
-          awk -v v="${{ steps.pkg.outputs.version }}" '
-            /^## / { if (found) exit; found = ($0 ~ "^## v" v "([^0-9.]|$)"); next }
-            found { print }
-          ' CHANGELOG.md | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > Output/release-notes.md
-          test -s Output/release-notes.md || { echo "CHANGELOG.md has no '## v${{ steps.pkg.outputs.version }}' section"; exit 1; }
-          ls -la Output
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: kebinImports
-          path: Output/*
-          if-no-files-found: error
+          path: Output
 
       - name: Publish GitHub release
-        if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Title the release with the update's name from its CHANGELOG heading, e.g. "## v2026.9.28 [The Everything Bagel Update]".
-          title=$(grep -m1 "^## v${{ steps.pkg.outputs.version }}" CHANGELOG.md | sed -n 's/.*\[\(.*\)\].*/\1/p')
+          title=$(grep -m1 "^## v${{ needs.build.outputs.version }}" CHANGELOG.md | sed -n 's/.*\[\(.*\)\].*/\1/p')
           gh release create "$GITHUB_REF_NAME" \
             "Output/kebinImports.unitypackage" \
-            "Output/$PACKAGE-${{ steps.pkg.outputs.version }}.zip" \
-            "Output/$PACKAGE-${{ steps.pkg.outputs.version }}.tgz" \
+            "Output/$PACKAGE-${{ needs.build.outputs.version }}.zip" \
+            "Output/$PACKAGE-${{ needs.build.outputs.version }}.tgz" \
             "Output/package.json" \
-            --title "${title:-kebinImports v${{ steps.pkg.outputs.version }}}" \
+            --title "${title:-kebinImports v${{ needs.build.outputs.version }}}" \
             --notes-file Output/release-notes.md
           # GitHub Pages only deploys from main, so rebuild the listing there now that the release exists.
           gh workflow run build.yml --ref main

@@ -282,8 +282,8 @@ namespace kebinImports
 
             public static Task<AIMessage> CompleteAsync(AISettings settings, string system, List<AIMessage> history, List<AITool> tools, CancellationToken ct)
             {
-                if (string.IsNullOrWhiteSpace(settings.Model)) throw new InvalidOperationException("No model selected. Open the settings (gear) and pick a model.");
-                if (settings.PresetInfo.NeedsKey && string.IsNullOrWhiteSpace(settings.ApiKey)) throw new InvalidOperationException(settings.PresetInfo.Name + " needs an API key. Open the settings (gear) and enter it.");
+                if (string.IsNullOrWhiteSpace(settings.Model)) throw new InvalidOperationException("No model selected. Open kebinAI's Settings and pick a model.");
+                if (settings.PresetInfo.NeedsKey && string.IsNullOrWhiteSpace(settings.ApiKey)) throw new InvalidOperationException(settings.PresetInfo.Name + " needs an API key. Open kebinAI's Settings and enter it.");
                 if (settings.Protocol == AIProtocol.Anthropic) return CompleteAnthropicAsync(settings, system, history, tools, ct);
                 if (settings.Protocol == AIProtocol.Ollama) return CompleteOllamaAsync(settings, system, history, tools, ct);
                 return CompleteOpenAIAsync(settings, system, history, tools, ct);
@@ -635,7 +635,7 @@ namespace kebinImports
                 if (result.StopReason == "refusal")
                 {
                     string why = node.HasKey("stop_details") && !node["stop_details"].IsNull ? node["stop_details"]["explanation"].Value : "";
-                    text.Append("\n\n[The model declined this request" + (string.IsNullOrEmpty(why) ? "." : ": " + why + "]"));
+                    text.Append("\n\n[The model declined this request" + (string.IsNullOrEmpty(why) ? "." : ": " + why) + "]");
                 }
                 else if (result.StopReason == "max_tokens")
                 {

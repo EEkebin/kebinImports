@@ -63,11 +63,19 @@ namespace kebinImports
                 if (GUILayout.Button("Fix All Materials"))
                 {
                     string from = shaders[_fromchoice], to = shaders[_tochoice];
-                    EditorApplication.delayCall += () => fixMaterials(from, to);
+                    EditorApplication.delayCall += () =>
+                    {
+                        int changed = fixMaterials(from, to);
+                        if (changed < 0) return;
+                        EditorUtility.DisplayDialog("kebinImports", changed == 0
+                            ? "No materials in Assets/ use " + (from == "Hidden/InternalErrorShader" ? "a missing shader" : "\"" + from + "\"") + ", so nothing was changed."
+                            : "Switched " + changed + (changed == 1 ? " material" : " materials") + " to \"" + to + "\".", "Ok");
+                    };
                 }
             }
         }
-        private static void fixMaterials(string shaderFrom, string shaderTo)
+        // Returns how many materials changed, or -1 when the target shader doesn't exist.
+        private static int fixMaterials(string shaderFrom, string shaderTo)
         {
             string[] guids = AssetDatabase.FindAssets("t: material");
             if (guids.Length >= 1)
@@ -94,7 +102,7 @@ namespace kebinImports
                 if (target == null)
                 {
                     EditorUtility.DisplayDialog("kebinImports", "The shader \"" + shaderTo + "\" could not be found, so no materials were changed.", "Ok");
-                    return;
+                    return -1;
                 }
                 int fixedCount = 0;
                 foreach (string guid in guids)
@@ -121,8 +129,10 @@ namespace kebinImports
                     }
                 }
                 AssetDatabase.SaveAssets();
-                Debug.Log("[kebinImports] Fix Materials changed " + fixedCount + " material(s) from \"" + shaderFrom + "\" to \"" + shaderTo + "\".");
+                Debug.Log("[kebinImports] Fix Materials changed " + fixedCount + (fixedCount == 1 ? " material" : " materials") + " from \"" + shaderFrom + "\" to \"" + shaderTo + "\".");
+                return fixedCount;
             }
+            return 0;
         }
     }
 }

@@ -49,11 +49,17 @@ namespace kebinImports
                     case "list_tools": return v("Check which tools are installed", "Checked which tools are installed") + ".";
                     case "get_essentials": return v("Look at your Essentials lists", "Looked at your Essentials lists") + ".";
                     case "run_doctor": return v("Run the Project Doctor", "Ran the Project Doctor") + ".";
+                    case "get_avatar_info": return v("Look over ", "Looked over ") + (Has(a, "object") ? Obj(a["object"]) : "your avatar") + ".";
+                    case "get_mesh_bones": return v("Check which bones ", "Checked which bones ") + Obj(a["object"]) + " uses.";
+                    case "get_blendshapes": return v("Look at the blendshapes", "Looked at the blendshapes") + (Has(a, "object") ? " on " + Obj(a["object"]) : "") + ".";
+                    case "select_objects": return v("Show you ", "Showed you ") + (a["objects"].Count == 1 ? Obj(a["objects"][0]) : "the objects") + ".";
+                    case "find_component_types": return v("Look up component types", "Looked up component types") + ".";
+                    case "get_asset_properties": return v("Read ", "Read ") + Asset(a["path"]) + ".";
 
                     // ---- changes (confirmed before they happen)
                     case "set_component_property":
                         return v("Set ", "Set ") + Nice(a["property_path"].Value) + " to " + Value(a["value"]) + " on the " + Component(a["component"].Value) + " of " + Obj(a["object"]) + ".";
-                    case "add_component": return v("Add a ", "Added a ") + Component(a["type"].Value) + " to " + Obj(a["object"]) + ".";
+                    case "add_component": { string c = Component(a["type"].Value); string an = c.Length > 0 && "AEIOUaeiou".IndexOf(c[0]) >= 0 ? "an " : "a "; return v("Add ", "Added ") + an + c + " to " + Obj(a["object"]) + "."; }
                     case "remove_component": return v("Remove the ", "Removed the ") + Component(a["component"].Value) + " from " + Obj(a["object"]) + ".";
                     case "set_active": return (a["active"].AsBool ? v("Turn on ", "Turned on ") : v("Turn off ", "Turned off ")) + Obj(a["object"]) + ".";
                     case "create_gameobject": return v("Create a new object called \"", "Created a new object called \"") + a["name"].Value + "\"" + (Has(a, "parent") ? " under " + Obj(a["parent"]) : "") + ".";
@@ -75,6 +81,23 @@ namespace kebinImports
                     case "remove_missing_scripts": return v("Remove broken (missing) scripts from ", "Removed broken (missing) scripts from ") + (Has(a, "object") ? Obj(a["object"]) : "the selected objects") + ".";
                     case "fix_scripting_define_symbols": return v("Reset the project's scripting define symbols so tools can set them up again", "Reset the project's scripting define symbols") + ".";
                     case "doctor_fix": return DoctorFix(a["id"].Value, past);
+                    case "assign_material": return v("Put the material ", "Put the material ") + Asset(a["material"]) + " on " + Obj(a["object"]) + (Has(a, "slot") && a["slot"].AsInt > 0 ? " (slot " + a["slot"].AsInt + ")" : "") + ".";
+                    case "set_blendshape": return v("Set the blendshape \"", "Set the blendshape \"") + a["name"].Value + "\" on " + Obj(a["object"]) + " to " + Value(a["value"]) + ".";
+                    case "set_transform": return TransformChange(a, past);
+                    case "modify_gameobject":
+                    {
+                        List<string> parts = new List<string>();
+                        if (Has(a, "name")) parts.Add(v("rename it to \"", "renamed it to \"") + a["name"].Value + "\"");
+                        if (a.HasKey("parent")) parts.Add(Has(a, "parent") ? v("move it under ", "moved it under ") + Obj(a["parent"]) : v("move it to the top of the scene", "moved it to the top of the scene"));
+                        if (Has(a, "tag")) parts.Add(v("set its tag to ", "set its tag to ") + a["tag"].Value);
+                        if (Has(a, "layer")) parts.Add(v("put it on the layer ", "put it on the layer ") + a["layer"].Value);
+                        return v("Change ", "Changed ") + Obj(a["object"]) + (parts.Count > 0 ? ": " + string.Join(", ", parts) : "") + ".";
+                    }
+                    case "delete_gameobject": return v("Delete ", "Deleted ") + Obj(a["object"]) + v(" and everything under it", " and everything under it") + ".";
+                    case "duplicate_gameobject": return v("Duplicate ", "Duplicated ") + Obj(a["object"]) + ".";
+                    case "instantiate_prefab": return v("Place ", "Placed ") + Asset(a["path"]) + v(" in the scene", " in the scene") + (Has(a, "parent") ? " under " + Obj(a["parent"]) : "") + ".";
+                    case "set_asset_property": return v("Set ", "Set ") + Nice(a["property_path"].Value) + " to " + Value(a["value"]) + " in " + Asset(a["path"]) + ".";
+                    case "create_asset": return v("Create ", "Created ") + Asset(a["path"]) + " (" + Nice(a["type"].Value) + ").";
                 }
                 return v("Use the tool ", "Used the tool ") + Nice(call.Name) + ".";
             }
@@ -149,6 +172,23 @@ namespace kebinImports
                 return ": " + string.Join(", ", parts);
             }
             // A value in words: numbers as numbers, true/false as on/off, colors as #RRGGBB, vectors as (x, y, z), references by name.
+            private static string TransformChange(JSONNode a, bool past)
+            {
+                Func<string, string, string> v = (present, done) => past ? done : present;
+                string obj = Obj(a["object"]);
+                if (Has(a, "scale_by"))
+                {
+                    float f = a["scale_by"].AsFloat;
+                    string how = f >= 1 ? Num(a["scale_by"]) + " times bigger" : Num(a["scale_by"]) + " times its size";
+                    return v("Make ", "Made ") + obj + " " + how + ".";
+                }
+                List<string> parts = new List<string>();
+                if (a.HasKey("position")) parts.Add(v("move", "moved"));
+                if (a.HasKey("rotation")) parts.Add(v("rotate", "rotated"));
+                if (a.HasKey("scale")) parts.Add(v("resize", "resized"));
+                string verbs = parts.Count == 0 ? v("change", "changed") : string.Join(" and ", parts);
+                return char.ToUpperInvariant(verbs[0]) + verbs.Substring(1) + " " + obj + ".";
+            }
             private static string Value(JSONNode v)
             {
                 if (v == null || v.IsNull) return "nothing";

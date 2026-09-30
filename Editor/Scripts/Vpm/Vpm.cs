@@ -38,6 +38,7 @@ namespace kebinImports
                 "https://vpm.thry.dev/index.json",
                 "https://hai-vr.github.io/vpm-listing/index.json",
                 "https://rurre.github.io/vpm/index.json",
+                "https://kurotu.github.io/vpm-repos/vpm.json",
             };
 
             private static readonly TimeSpan ListingMaxAge = TimeSpan.FromHours(6);

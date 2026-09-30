@@ -102,7 +102,7 @@ namespace kebinImports
             {
                 EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
                 AIKnownModel known = settings.PresetInfo.Known(settings.Model);
-                string modelLabel = string.IsNullOrEmpty(settings.Model) ? "no model" : (known != null ? known.Label + (known.Free ? " [Free]" : "") : settings.Model);
+                string modelLabel = string.IsNullOrEmpty(settings.Model) ? "no model" : (known != null ? known.Label : settings.Model);
                 GUILayout.Label(settings.PresetInfo.Name + "  ·  " + modelLabel, EditorStyles.miniLabel);
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("New chat", EditorStyles.toolbarButton)) { if (!agent.IsBusy || EditorUtility.DisplayDialog("kebinAI", "Cancel the running request and start a new chat?", "Yes", "No")) { agent.Clear(); input = ""; } }
@@ -139,7 +139,7 @@ namespace kebinImports
                 foreach (AIKnownModel km in settings.PresetInfo.KnownModels)
                 {
                     ids.Add(km.Id);
-                    labels.Add(km.Label + (km.Free ? "   [Free]" : "") + "   (" + km.Id + ")");
+                    labels.Add(km.Label + "   (" + km.Id + ")");
                 }
                 if (models != null)
                 {

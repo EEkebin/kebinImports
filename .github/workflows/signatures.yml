@@ -37,6 +37,7 @@ jobs:
               "apt": ("https://vpm.thry.dev/index.json", "de.thryrallo.vrc.avatar-performance-tools"),
               "cge": ("https://hai-vr.github.io/vpm-listing/index.json", "dev.hai-vr.cge"),
               "pumkin": ("https://rurre.github.io/vpm/index.json", "io.github.rurre.pumkinsavatartools"),
+              "vrcquesttools": ("https://kurotu.github.io/vpm-repos/vpm.json", "com.github.kurotu.vrc-quest-tools"),
               "gesture-manager": ("https://packages.vrchat.com/curated?download", "vrchat.blackstartx.gesture-manager"),
               "av3emulator": ("https://packages.vrchat.com/curated?download", "lyuma.av3emulator"),
               "vrworld-toolkit": ("https://packages.vrchat.com/curated?download", "dev.onevr.vrworldtoolkit"),

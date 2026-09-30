@@ -1,6 +1,6 @@
 {
     "name": "dev.kebin.kebinimports",
-    "version": "2026.9.28",
+    "version": "2026.9.29",
     "unity": "2022.3",
     "displayName": "kebinImports",
     "description": "An Importer Menu for Commonly Used/Imported Assets in Unity for Avatar/World Development in Unity VR Games",

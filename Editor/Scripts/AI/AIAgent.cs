@@ -77,7 +77,7 @@ namespace kebinImports
                 }
                 AIMessage reply = task.Result;
                 History.Add(reply);
-                if (!string.IsNullOrWhiteSpace(reply.Text)) Transcript.Add(new AITranscriptEntry { Kind = "assistant", Title = "kebinAI", Text = reply.Text.Trim() });
+                if (!string.IsNullOrWhiteSpace(reply.Text)) Transcript.Add(new AITranscriptEntry { Kind = "assistant", Title = "kebinAI", Text = PlainText(reply.Text) });
                 if (reply.ToolCalls.Count == 0) { Finish(); return; }
                 if (steps >= Settings.MaxSteps)
                 {
@@ -151,6 +151,17 @@ namespace kebinImports
                 if (IsBusy) { Cancel(); Transcript.Add(new AITranscriptEntry { Kind = "error", Title = "Timeout", Text = "No answer within " + timeoutSeconds + " seconds." }); }
             }
 
+            // Models write Markdown even when asked not to; the window shows plain text, so drop the markup.
+            private static string PlainText(string text)
+            {
+                string t = text.Trim();
+                t = System.Text.RegularExpressions.Regex.Replace(t, @"(\*\*|__)(.+?)\1", "$2");
+                t = System.Text.RegularExpressions.Regex.Replace(t, @"`([^`\n]+)`", "$1");
+                t = System.Text.RegularExpressions.Regex.Replace(t, @"(?m)^#{1,6}\s+", "");
+                t = System.Text.RegularExpressions.Regex.Replace(t, @"(?m)^(\s*)[-*]\s+", "$1• ");
+                return t;
+            }
+
             // ---------------------------------------------------------------- prompt
             private string BuildSystemPrompt()
             {
@@ -166,6 +177,17 @@ namespace kebinImports
                 sb.AppendLine("- The person you are talking to is a VRChat creator, not a programmer. Always answer in plain, friendly English. Never show JSON, code, tool names, file GUIDs, property paths such as m_LocalPosition, or package ids such as jp.lilxyzw.liltoon; use the names people see in Unity (Local Position, lilToon). Only show code if they ask for it.");
                 sb.AppendLine("- When you are done, say what you changed in a few short sentences. Plain text, no markdown tables.");
                 sb.AppendLine("- Installing a tool or clearing define symbols makes Unity recompile and reload scripts, which ends this conversation turn. Do those last, then tell the user what to do next.");
+                sb.AppendLine("- Do what the user asks with the tools; don't tell them to do it by hand unless no tool can.");
+                sb.AppendLine();
+                sb.AppendLine("VRChat avatars:");
+                sb.AppendLine("- When the user talks about their avatar, call get_avatar_info first. An avatar's root is its top object (it has the Animator); the VRChat avatar descriptor (VRCAvatarDescriptor) and pipeline manager go on that root, never on a mesh or bone.");
+                sb.AppendLine("- Before adding a PhysBone, check whether that part already has one (get_avatar_info lists them, get_mesh_bones says ALREADY moved). If it does, tell the user and offer to change its settings instead of adding another.");
+                sb.AppendLine("- A part whose mesh only follows the humanoid skeleton has no bones of its own and can't jiggle; bones have to be added and weight-painted in a 3D program such as Blender. Say so instead of creating empty bones.");
+                sb.AppendLine("- PhysBones (VRCPhysBone) make hair, ears, tails, skirts, breasts and clothes move. They go on the first bone of that part's bone chain in the Armature, not on the mesh. Find the bones with get_mesh_bones on the part's mesh, or find_objects by bone name. Left/right bones are usually named with _L/_R, .L/.R or Left/Right; breast bones are often called Breast, Bust or Chest_L/R.");
+                sb.AppendLine("- Useful PhysBone settings: pull, spring (momentum), stiffness, gravity (-1 to 1, positive pulls down), gravityFalloff, immobile, radius, maxAngleX, colliders, rootTransform.");
+                sb.AppendLine("- To make an avatar bigger or smaller, use set_transform with scale_by on the avatar root; it keeps the view position at the eyes.");
+                sb.AppendLine("- To put a material on a mesh use assign_material (it keeps the mesh's other material slots). Face expressions and body shapes are blendshapes: get_blendshapes without an object searches every mesh.");
+                sb.AppendLine("- Other VRChat components: VRCPhysBoneCollider, VRCContactSender, VRCContactReceiver, VRCParentConstraint and friends. find_component_types lists every addable component.");
                 sb.AppendLine();
                 sb.Append(AIKebinTools.DescribeForPrompt());
                 sb.AppendLine();
@@ -178,6 +200,7 @@ namespace kebinImports
                 sb.AppendLine("- Unity " + Application.unityVersion + ", project '" + System.IO.Path.GetFileName(ProjectPath) + "', " + (isVRCCreatorCompanion ? "a VRChat Creator Companion project" : "not a Creator Companion project") + ".");
                 string scenes = string.Join(", ", Enumerable.Range(0, SceneManager.sceneCount).Select(i => SceneManager.GetSceneAt(i).name).Where(n => !string.IsNullOrEmpty(n)));
                 sb.AppendLine("- Open scene(s): " + (scenes.Length > 0 ? scenes : "(untitled)") + ".");
+                sb.AppendLine("- Avatars in the scene: " + AITools.DescribeAvatarsForPrompt() + ".");
                 string selection = string.Join(", ", Selection.gameObjects.Take(8).Select(g => AITools.PathOf(g.transform)));
                 if (Selection.objects.Length > 0 && selection.Length == 0) selection = string.Join(", ", Selection.objects.Take(8).Select(o => AssetDatabase.GetAssetPath(o)).Where(p => !string.IsNullOrEmpty(p)));
                 sb.AppendLine("- Selected: " + (selection.Length > 0 ? selection : "nothing") + ".");

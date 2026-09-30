@@ -1,4 +1,11 @@
 # ChangeLog
+## v2026.9.29 [The Jiggle Physics Update]
+- Added VRCQuestTools (Avatar Tools, and optional in Avatar Essentials), installed from kurotu's official listing.
+- kebinAI got much better at avatar work: it finds your avatar, puts descriptors on the root and PhysBones on the right bones, swaps materials slot by slot, sets blendshapes, and moves, renames, duplicates, deletes and scales objects (scaling keeps the viewpoint at the eyes).
+- kebinAI can edit any asset, such as expression menus and parameters, and won't add a second PhysBone to bones that already have one.
+- kebinAI works with Ollama on smaller GPUs: it now sets the context size so long conversations aren't cut off.
+- OpenCode's free models only work inside the OpenCode app now, so kebinAI says so clearly instead of blaming your API key.
+
 ## v2026.9.28 [The Everything Bagel Update]
 - Updated for Unity 2022.3.22f1 and the VRChat Creator Companion. kebinImports now installs as a package under Packages/.
 - Tools install from their official VPM listings with dependencies, so the Creator Companion can manage and update them.

@@ -14,18 +14,20 @@ namespace kebinImports
 {
     public partial class kebinImports
     {
-        // Two wire protocols cover every backend we care about:
-        //  - OpenAI-compatible chat completions: Ollama, LM Studio, llama.cpp server, OpenCode Zen, OpenAI, vLLM, ...
+        // Three wire protocols cover every backend we care about:
+        //  - OpenAI-compatible chat completions: LM Studio, llama.cpp server, OpenCode Zen, OpenAI, vLLM, ...
         //  - Anthropic Messages API: Claude, called directly (Unity's Mono runtime cannot load the NuGet SDK).
-        internal enum AIProtocol { OpenAICompatible, Anthropic }
+        //  - Ollama's own chat API: like OpenAI's, but it lets us set the context size. Through Ollama's OpenAI endpoint
+        //    the model runs with Ollama's default context, which on smaller GPUs is too short for kebinAI's instructions
+        //    and tools; Ollama then silently drops the start of the conversation and the model loses its tools.
+        internal enum AIProtocol { OpenAICompatible, Anthropic, Ollama }
 
         // A model we know about up front, so it can be picked from the dropdown before (or without) listing the server.
         internal class AIKnownModel
         {
             public string Id;
             public string Label;
-            public bool Free;
-            public AIKnownModel(string id, string label, bool free = false) { Id = id; Label = label; Free = free; }
+            public AIKnownModel(string id, string label) { Id = id; Label = label; }
         }
 
         internal class AIPreset
@@ -43,25 +45,16 @@ namespace kebinImports
 
         internal static readonly AIPreset[] AIPresets =
         {
-            new AIPreset { Name = "Ollama (local)", BaseUrl = "http://localhost:11434/v1", Hint = "Run 'ollama serve', then pull a model that supports tool calling (for example 'ollama pull qwen3'). Click Models to list what is installed." },
+            new AIPreset { Name = "Ollama (local)", Protocol = AIProtocol.Ollama, BaseUrl = "http://localhost:11434", Hint = "Run 'ollama serve', then pull a model that supports tool calling (for example 'ollama pull qwen3'). Click Models to list what is installed." },
             new AIPreset { Name = "LM Studio (local)", BaseUrl = "http://localhost:1234/v1", Hint = "Start the server on LM Studio's Developer tab and load a model that supports tool calling." },
             new AIPreset { Name = "llama.cpp server (local)", BaseUrl = "http://localhost:8080/v1", Hint = "Start llama-server with --jinja so the model can call tools." },
             new AIPreset
             {
-                Name = "OpenCode Zen", BaseUrl = "https://opencode.ai/zen/v1", DefaultModel = "big-pickle", NeedsKey = true,
-                Hint = "Sign in at opencode.ai/zen and copy your API key. The models marked Free cost nothing; the rest bill your Zen balance.",
-                // The free tier as OpenCode lists it. Click Models to see everything Zen offers.
+                Name = "OpenCode Zen", BaseUrl = "https://opencode.ai/zen/v1", DefaultModel = "claude-sonnet-5", NeedsKey = true,
+                Hint = "Sign in at opencode.ai/zen and copy your API key; models bill your Zen balance. (OpenCode's free models only work inside the OpenCode app itself. For free, run a model on this computer with Ollama or LM Studio.)",
+                // Click Models to see everything Zen offers.
                 KnownModels = new[]
                 {
-                    new AIKnownModel("big-pickle", "Big Pickle", true),
-                    new AIKnownModel("space-bunny-free", "Space Bunny", true),
-                    new AIKnownModel("mimo-v2.6-flash-free", "MiMo-V2.6-Flash", true),
-                    new AIKnownModel("mimo-v2.5-free", "MiMo-V2.5", true),
-                    new AIKnownModel("muse-spark-1.3-contributor-free", "Muse Spark 1.3", true),
-                    new AIKnownModel("ling-3.0-flash-fin-free", "Ling 3.0 Flash Fin", true),
-                    new AIKnownModel("nemotron-3.5-lightning-free", "Nemotron 3.5 Lightning", true),
-                    new AIKnownModel("nemotron-3-ultra-free", "Nemotron 3 Ultra", true),
-                    new AIKnownModel("deepseek-v4-flash-free", "DeepSeek V4 Flash", true),
                     new AIKnownModel("claude-opus-5-5", "Claude Opus 5.5"),
                     new AIKnownModel("claude-sonnet-5", "Claude Sonnet 5"),
                     new AIKnownModel("gpt-5.5", "GPT-5.5"),
@@ -241,15 +234,15 @@ namespace kebinImports
             {
                 if (string.IsNullOrWhiteSpace(settings.Model)) throw new InvalidOperationException("No model selected. Open the settings (gear) and pick a model.");
                 if (settings.PresetInfo.NeedsKey && string.IsNullOrWhiteSpace(settings.ApiKey)) throw new InvalidOperationException(settings.PresetInfo.Name + " needs an API key. Open the settings (gear) and enter it.");
-                return settings.Protocol == AIProtocol.Anthropic
-                    ? CompleteAnthropicAsync(settings, system, history, tools, ct)
-                    : CompleteOpenAIAsync(settings, system, history, tools, ct);
+                if (settings.Protocol == AIProtocol.Anthropic) return CompleteAnthropicAsync(settings, system, history, tools, ct);
+                if (settings.Protocol == AIProtocol.Ollama) return CompleteOllamaAsync(settings, system, history, tools, ct);
+                return CompleteOpenAIAsync(settings, system, history, tools, ct);
             }
 
             public static async Task<List<string>> ListModelsAsync(AISettings settings, CancellationToken ct)
             {
-                string url = settings.Protocol == AIProtocol.Anthropic
-                    ? Endpoint(settings.BaseUrl, "/v1/models", "/v1")
+                string url = settings.Protocol == AIProtocol.Anthropic ? Endpoint(settings.BaseUrl, "/v1/models", "/v1")
+                    : settings.Protocol == AIProtocol.Ollama ? OllamaRoot(settings.BaseUrl) + "/api/tags"
                     : Endpoint(settings.BaseUrl, "/models", null);
                 JSONNode node = await SendAsync(settings, HttpMethod.Get, url, null, ct).ConfigureAwait(false);
                 List<string> models = new List<string>();
@@ -366,6 +359,113 @@ namespace kebinImports
                 if (result.StopReason == "length") result.Text += "\n\n[The reply was cut off by the token limit. Raise Max tokens in the settings if this keeps happening.]";
                 return result;
             }
+
+            // ---------------------------------------------------------------- Ollama's own chat API
+            // Accepts "http://host:11434", ".../v1" (the OpenAI-style address older settings saved) or ".../api".
+            private static string OllamaRoot(string baseUrl)
+            {
+                string b = (baseUrl ?? "").Trim().TrimEnd('/');
+                foreach (string suffix in new[] { "/v1", "/api" }) if (b.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) b = b.Substring(0, b.Length - suffix.Length);
+                return b;
+            }
+            private static async Task<AIMessage> CompleteOllamaAsync(AISettings settings, string system, List<AIMessage> history, List<AITool> tools, CancellationToken ct)
+            {
+                JSONObject body = new JSONObject();
+                body["model"] = settings.Model;
+                body["stream"] = false;
+                JSONArray messages = new JSONArray();
+                JSONObject sys = new JSONObject();
+                sys["role"] = "system";
+                sys["content"] = system;
+                messages.Add(sys);
+                int chars = system.Length;
+                foreach (AIMessage m in history)
+                {
+                    JSONObject jm = new JSONObject();
+                    switch (m.Role)
+                    {
+                        case "user":
+                            jm["role"] = "user";
+                            jm["content"] = m.Text ?? "";
+                            break;
+                        case "assistant":
+                            jm["role"] = "assistant";
+                            jm["content"] = m.Text ?? "";
+                            if (m.ToolCalls.Count > 0)
+                            {
+                                JSONArray calls = new JSONArray();
+                                foreach (AIToolCall c in m.ToolCalls)
+                                {
+                                    JSONObject fn = new JSONObject();
+                                    fn["name"] = c.Name;
+                                    fn["arguments"] = c.Arguments ?? new JSONObject();
+                                    JSONObject jc = new JSONObject();
+                                    jc["function"] = fn;
+                                    calls.Add(jc);
+                                }
+                                jm["tool_calls"] = calls;
+                            }
+                            break;
+                        case "tool":
+                            jm["role"] = "tool";
+                            jm["tool_name"] = m.ToolName ?? "";
+                            jm["content"] = m.Text ?? "";
+                            break;
+                        default:
+                            continue;
+                    }
+                    chars += jm.ToString().Length;
+                    messages.Add(jm);
+                }
+                body["messages"] = messages;
+                if (tools != null && tools.Count > 0)
+                {
+                    JSONArray jtools = new JSONArray();
+                    foreach (AITool t in tools)
+                    {
+                        JSONObject fn = new JSONObject();
+                        fn["name"] = t.Name;
+                        fn["description"] = t.Description;
+                        fn["parameters"] = t.Schema;
+                        JSONObject jt = new JSONObject();
+                        jt["type"] = "function";
+                        jt["function"] = fn;
+                        jtools.Add(jt);
+                    }
+                    body["tools"] = jtools;
+                    chars += jtools.ToString().Length;
+                }
+                // Size the context to the conversation (about 3 characters per token, plus room for the answer), in a
+                // few fixed steps: every change of size makes Ollama reload the model.
+                int reply = settings.MaxTokens > 0 ? Math.Min(settings.MaxTokens, 8192) : 4096;
+                int needed = chars / 3 + reply;
+                int ctx = needed <= 16384 ? 16384 : needed <= 32768 ? 32768 : 65536;
+                JSONObject options = new JSONObject();
+                options["num_ctx"] = ctx;
+                if (settings.MaxTokens > 0) options["num_predict"] = settings.MaxTokens;
+                body["options"] = options;
+
+                JSONNode node = await SendAsync(settings, HttpMethod.Post, OllamaRoot(settings.BaseUrl) + "/api/chat", body, ct).ConfigureAwait(false);
+                if (node.HasKey("error") && !node["error"].IsNull) throw new Exception("Ollama: " + node["error"].Value);
+                JSONNode msg = node["message"];
+                AIMessage result = new AIMessage { Role = "assistant", StopReason = node["done_reason"].Value, Text = msg["content"].Value };
+                if (msg.HasKey("tool_calls") && msg["tool_calls"].IsArray)
+                {
+                    foreach (JSONNode jc in msg["tool_calls"].Children)
+                    {
+                        JSONNode args = jc["function"]["arguments"];
+                        result.ToolCalls.Add(new AIToolCall
+                        {
+                            Id = jc.HasKey("id") && jc["id"].Value != "" ? jc["id"].Value : "call_" + Guid.NewGuid().ToString("N").Substring(0, 12),
+                            Name = jc["function"]["name"].Value,
+                            Arguments = args.IsObject ? args : args.IsString ? (JSON.Parse(args.Value) ?? new JSONObject()) : new JSONObject(),
+                        });
+                    }
+                }
+                if (result.StopReason == "length") result.Text += "\n\n[The reply was cut off by the token limit. Raise Max tokens in the settings if this keeps happening.]";
+                return result;
+            }
+
 
             // ---------------------------------------------------------------- Anthropic Messages API
             private static async Task<AIMessage> CompleteAnthropicAsync(AISettings settings, string system, List<AIMessage> history, List<AITool> tools, CancellationToken ct)
@@ -526,7 +626,7 @@ namespace kebinImports
                         if (!response.IsSuccessStatusCode)
                         {
                             Debug.LogWarning("[kebinImports] kebinAI request failed (HTTP " + (int)response.StatusCode + ") at " + url + ": " + Truncate(text, 800));
-                            throw new Exception(FriendlyHttpError((int)response.StatusCode, settings));
+                            throw new Exception(FriendlyHttpError((int)response.StatusCode, settings, text));
                         }
                         JSONNode node = JSON.Parse(text);
                         if (node == null)
@@ -539,13 +639,18 @@ namespace kebinImports
                 }
             }
 
-            private static string FriendlyHttpError(int status, AISettings settings)
+            private static string FriendlyHttpError(int status, AISettings settings, string body)
             {
+                // OpenCode only serves its free models to the OpenCode app itself.
+                bool zen = (settings.BaseUrl ?? "").Contains("opencode.ai");
+                if ((body ?? "").IndexOf("free tier", StringComparison.OrdinalIgnoreCase) >= 0 || zen && status == 403 && string.IsNullOrWhiteSpace(settings.ApiKey))
+                    return "OpenCode's free models only work inside the OpenCode app, so kebinAI can't use them. Use a Zen model with your Zen API key, or run a free model on this computer with Ollama or LM Studio.";
+                if (settings.Protocol == AIProtocol.Ollama && status == 404) return "Ollama doesn't have the model \"" + settings.Model + "\". Download it with 'ollama pull " + settings.Model + "', or pick one of your models in kebinAI's Settings (the Models button lists them).";
                 switch (status)
                 {
                     case 401:
                     case 403: return "The API key was not accepted. Open kebinAI's Settings and check the key for " + settings.PresetInfo.Name + ".";
-                    case 402: return "Your " + settings.PresetInfo.Name + " account is out of credit. Add credit, or pick a model marked [Free].";
+                    case 402: return "Your " + settings.PresetInfo.Name + " account is out of credit. Add credit to keep using it, or run a free model on this computer with Ollama or LM Studio.";
                     case 404: return "The AI service doesn't know the model \"" + settings.Model + "\". Pick another model in kebinAI's Settings (the Models button lists them).";
                     case 408:
                     case 504: return "The AI service took too long to answer. Try again in a moment.";

@@ -27,7 +27,7 @@ namespace kebinImports
 
         // Everything the assistant can do in the editor. Every handler runs on the main thread and returns text
         // for the model; anything it changes is recorded with Undo where Unity supports it.
-        internal static class AITools
+        internal static partial class AITools
         {
             public static readonly List<AITool> All = new List<AITool>();
             private const int MaxTextResult = 24000;
@@ -68,22 +68,22 @@ namespace kebinImports
                 Register("get_selection", "The objects currently selected in the editor: scene paths and asset paths.", false,
                     Schema(), _ => GetSelection());
                 Register("get_hierarchy", "The scene hierarchy as an indented tree with component names. Use root to start at a specific object.", false,
-                    Schema("root", "string", "Scene path of the object to start from (Root/Child). Omit for the whole scene.", "depth", "integer", "How many levels to show (default 3)."),
+                    Schema("root", "string", "Scene path of the object to start from, e.g. MyAvatar/Armature. Omit for the whole scene.", "depth", "integer", "How many levels to show (default 3)."),
                     a => GetHierarchy(a));
                 Register("find_objects", "Find scene objects (including inactive ones) by name substring and/or component type.", false,
                     Schema("name_contains", "string", "Case-insensitive substring of the object name.", "component_type", "string", "Component type name, e.g. VRCPhysBone, SkinnedMeshRenderer.", "limit", "integer", "Maximum results (default 50)."),
                     a => FindObjects(a));
                 Register("get_components", "List the components on a scene object with their index and enabled state.", false,
-                    Schema("object*", "string", "Scene path of the object (Root/Child)."),
+                    Schema("object*", "string", "Scene path of the object, e.g. MyAvatar/Armature/Hips."),
                     a => GetComponents(a));
                 Register("get_component_properties", "Read every serialized property of a component as JSON. Property paths returned here are what set_component_property expects. Works for any component, including VRChat SDK ones such as VRCPhysBone.", false,
                     Schema("object*", "string", "Scene path of the object.", "component*", "string", "Component type name, e.g. VRCPhysBone or Transform.", "index", "integer", "Which one when several components of that type exist (default 0).", "filter", "string", "Only include properties whose path contains this text."),
                     a => GetComponentProperties(a));
-                Register("set_component_property", "Set one serialized property on a component. Read the component first to learn property paths and value shapes. Values: numbers, booleans, strings, enum names, {\"r\",\"g\",\"b\",\"a\"} colors, {\"x\",\"y\",\"z\",\"w\"} vectors, object references as an asset path (Assets/...) or scene path (Root/Child, optionally {\"object\":path,\"component\":type}), arrays as JSON arrays, nested objects as JSON objects.", true,
+                Register("set_component_property", "Set one serialized property on a component. Read the component first to learn property paths and value shapes. Values: numbers, booleans, strings, enum names, {\"r\",\"g\",\"b\",\"a\"} colors, {\"x\",\"y\",\"z\",\"w\"} vectors, object references as an asset path (Assets/...) or scene path (e.g. MyAvatar/Armature/Hips, optionally {\"object\":path,\"component\":type}), arrays as JSON arrays, nested objects as JSON objects.", true,
                     Schema("object*", "string", "Scene path of the object.", "component*", "string", "Component type name.", "index", "integer", "Which one when several exist (default 0).", "property_path*", "string", "Serialized property path, e.g. m_LocalPosition or pull or colliders.", "value*", "any", "The new value."),
                     a => SetComponentProperty(a));
-                Register("add_component", "Add a component to a scene object by type name.", true,
-                    Schema("object*", "string", "Scene path of the object.", "type*", "string", "Component type name, e.g. VRCPhysBone."),
+                Register("add_component", "Add a component to a scene object by type name. VRChat avatar descriptors go on the avatar's root object; PhysBones go on bones (see get_mesh_bones), not on meshes.", true,
+                    Schema("object*", "string", "Scene path of the object.", "type*", "string", "Component type name, e.g. VRCPhysBone, VRCAvatarDescriptor, VRCPhysBoneCollider. Use find_component_types if unsure."),
                     a => AddComponent(a));
                 Register("remove_component", "Remove a component from a scene object.", true,
                     Schema("object*", "string", "Scene path of the object.", "component*", "string", "Component type name.", "index", "integer", "Which one when several exist (default 0)."),
@@ -131,6 +131,7 @@ namespace kebinImports
                     Schema(), _ => SaveAll());
                 Register("undo", "Undo the last editor change (same as Ctrl+Z).", true,
                     Schema(), _ => { Undo.PerformUndo(); return "Undid the last change."; });
+                RegisterAvatarTools();
                 // kebinImports' own capabilities: the importer, Essentials and utilities.
                 AIKebinTools.Register(Register, Schema);
             }
@@ -274,6 +275,7 @@ namespace kebinImports
             {
                 List<Component> matches = go.GetComponents<Component>().Where(c => c != null && c.GetType().Name.Equals(typeName, StringComparison.OrdinalIgnoreCase) || c != null && c.GetType().FullName.Equals(typeName, StringComparison.OrdinalIgnoreCase)).ToList();
                 if (matches.Count == 0) matches = go.GetComponents<Component>().Where(c => c != null && TypeMatches(c.GetType(), typeName)).ToList();
+                if (matches.Count == 0) matches = go.GetComponents<Component>().Where(c => c != null && TypeKey(c.GetType().Name) == TypeKey(typeName)).ToList();
                 if (matches.Count == 0) throw new ArgumentException("No " + typeName + " on '" + PathOf(go.transform) + "'. Components: " + string.Join(", ", go.GetComponents<Component>().Where(c => c != null).Select(c => c.GetType().Name)));
                 if (index < 0 || index >= matches.Count) throw new ArgumentException("Index " + index + " is out of range; there are " + matches.Count + " " + typeName + " components.");
                 return matches[index];
@@ -376,7 +378,7 @@ namespace kebinImports
                 foreach (GameObject go in AllSceneObjects())
                 {
                     if (!string.IsNullOrEmpty(name) && go.name.IndexOf(name, StringComparison.OrdinalIgnoreCase) < 0) continue;
-                    if (!string.IsNullOrEmpty(type) && !go.GetComponents<Component>().Any(c => c != null && TypeMatches(c.GetType(), type))) continue;
+                    if (!string.IsNullOrEmpty(type) && !go.GetComponents<Component>().Any(c => c != null && (TypeMatches(c.GetType(), type) || TypeKey(c.GetType().Name) == TypeKey(type)))) continue;
                     sb.AppendLine(PathOf(go.transform) + (go.activeInHierarchy ? "" : " (inactive)"));
                     if (++count >= limit) { sb.AppendLine("… (limit reached)"); break; }
                 }
@@ -644,11 +646,21 @@ namespace kebinImports
             {
                 GameObject go = FindSceneObject(Require(a, "object"));
                 string typeName = Require(a, "type");
-                Type type = FindType(typeName, typeof(Component));
-                if (type == null) throw new ArgumentException("No component type named '" + typeName + "' is loaded. Is the package that provides it imported?");
+                List<string> suggestions;
+                Type type = ResolveComponentType(typeName, out suggestions);
+                if (type == null)
+                {
+                    throw new ArgumentException("There is no component type called '" + typeName + "'." + (suggestions.Count > 0 ? " Did you mean: " + string.Join(", ", suggestions) + "?" : " Use find_component_types to search for the right name."));
+                }
+                if (go.GetComponent(type) != null && type.GetCustomAttributes(typeof(DisallowMultipleComponent), true).Length > 0) return "'" + PathOf(go.transform) + "' already has a " + type.Name + "; nothing to add.";
+                // Two PhysBones on one bone fight each other; point the model at the existing one instead.
+                if (type.Name == "VRCPhysBone" && go.GetComponent(type) != null) return "'" + PathOf(go.transform) + "' already has a PhysBone, so nothing was added. Change the existing one's settings instead (get_component_properties / set_component_property).";
                 Component c = Undo.AddComponent(go, type);
                 if (c == null) throw new InvalidOperationException("Unity refused to add " + type.Name + " (see the console).");
-                return "Added " + type.FullName + " to '" + PathOf(go.transform) + "'.";
+                string note = "";
+                if (type.Name == "VRCAvatarDescriptor" && go.transform.parent != null) note = " Note: an avatar descriptor normally goes on the avatar's top object, and this one is inside '" + PathOf(go.transform.parent) + "'.";
+                if (type.Name == "VRCPhysBone" && go.GetComponent<Renderer>() != null) note = " Note: this object is a mesh, not a bone. A PhysBone on a mesh does nothing unless its Root Transform is set to the first bone of the part that should move (see get_mesh_bones).";
+                return "Added " + type.Name + " to '" + PathOf(go.transform) + "'." + note;
             }
             private static string RemoveComponent(JSONNode a)
             {

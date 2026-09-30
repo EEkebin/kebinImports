@@ -72,7 +72,7 @@ Everything lives under **kebinImports** in Unity's menu bar, in this order.
     </tr>
     <tr>
       <th>Avatar Tools</th>
-      <td>Modular Avatar<br>VRCFury<br>DressingTools<br>Pumkin's Avatar Tools<br>ComboGestureExpressions<br>Avatar Performance Tools<br>Gesture Manager<br>Av3Emulator<br><i>Muscle Animation Editor</i></td>
+      <td>Modular Avatar<br>VRCFury<br>DressingTools<br>Pumkin's Avatar Tools<br>ComboGestureExpressions<br>Avatar Performance Tools<br>Gesture Manager<br>Av3Emulator<br>VRCQuestTools<br><i>Muscle Animation Editor</i></td>
     </tr>
     <tr>
       <th>World Tools</th>
@@ -103,7 +103,7 @@ Every kebinImports window scales with your monitor. The **UI scale** setting in 
 
 ## **How installs work**
 
-kebinImports is a VPM client inside Unity. Every tool with an official VPM listing (Poiyomi, lilToon, Modular Avatar, VRCFury, DressingTools, Pumkin's, Thry's, Hai's, and VRChat's official and curated listings) is installed from that listing, in any project. The newest version your Unity supports is picked, dependencies are installed too, downloads are verified against the listing's SHA-256, and `vpm-manifest.json` is kept in sync so the Creator Companion and ALCOM can manage and update the package later. Tools without a listing come from their GitHub release or the Unity registry.
+kebinImports is a VPM client inside Unity. Every tool with an official VPM listing (Poiyomi, lilToon, Modular Avatar, VRCFury, DressingTools, Pumkin's, Thry's, Hai's, kurotu's VRCQuestTools, and VRChat's official and curated listings) is installed from that listing, in any project. The newest version your Unity supports is picked, dependencies are installed too, downloads are verified against the listing's SHA-256, and `vpm-manifest.json` is kept in sync so the Creator Companion and ALCOM can manage and update the package later. Tools without a listing come from their GitHub release or the Unity registry.
 
 Leftovers of older install methods, such as the same tool under `Assets/` from a .unitypackage, are removed after a successful install, and materials that used the old copy's shaders are re-pointed so nothing turns pink.
 
@@ -126,7 +126,7 @@ It also checks a Load AssetBundle preview. An avatar built for Quest shows up pi
 
 ## **kebinAI**
 
-`kebinImports › Ask kebinAI` opens a chat with kebinAI, an AI that works inside your project. It can read and change materials, shaders, components (including VRChat ones such as PhysBones), scene objects and text files, and read the console to check its own work. It also knows kebinImports: it can install, update and remove tools, change the Essentials, run the Quick Fixes, and run the Project Doctor and apply its fixes.
+`kebinImports › Ask kebinAI` opens a chat with kebinAI, an AI that works inside your project. Ask it the way you'd ask a friend who knows Unity: "add the avatar descriptor to my avatar", "put the Hair material on the Body mesh", "add a PhysBone to my hair", "make the tail's gravity -0.8", "scale my avatar up 1.5x", "delete the sneakers". It can see the scene and your avatars, knows which bones a mesh uses (so PhysBones land on bones, not meshes), and can change any component, material, blendshape or asset (expression menus and parameters included), move, rename, duplicate and delete objects, and read the console to check its own work. It also knows kebinImports: it can install, update and remove tools, change the Essentials, run the Quick Fixes, and run the Project Doctor and apply its fixes.
 
 kebinAI talks in plain English, not code. Before it changes anything it tells you what it wants to do, like "Install lilToon", and waits for you to allow it, and every change goes through Unity's undo history.
 
@@ -134,8 +134,8 @@ Pick a provider in the window's settings:
 
 | Provider | Notes |
 | --- | --- |
-| Ollama, LM Studio, llama.cpp server | Local, no key. Use a model that supports tool calling, for example `qwen3`. |
-| OpenCode Zen | `Big Pickle` and the other models marked **[Free]** cost nothing; paid models bill your Zen balance. |
+| Ollama, LM Studio, llama.cpp server | Local and free, no key. Use a model that supports tool calling, for example `qwen3`. kebinAI sizes Ollama's context to the conversation, so smaller GPUs work too. |
+| OpenCode Zen | Your Zen API key; models bill your Zen balance. OpenCode's free models only work inside the OpenCode app itself. |
 | OpenAI, Anthropic (Claude) | Your own API key. |
 | Custom | Any OpenAI-compatible server (vLLM, Jan, text-generation-webui, ...). |
 
@@ -145,7 +145,7 @@ Base URL, key and model are remembered per provider. Keys are stored on your mac
 
 There are no build scripts and no `.meta` files in the repository. GitHub Actions (`.github/workflows/build.yml`) stages the package, generates a `.meta` for every file and folder with a GUID derived from its path, and builds `kebinImports.unitypackage`, the VPM zip and the UPM tarball on every push. They can be downloaded from the workflow run's artifacts.
 
-To release, bump `version` in `package.json`, add the matching `## v<version>` section to `CHANGELOG.md`, and push a tag with the same version, for example `git tag v2026.9.28 && git push --tags`. The workflow creates the release with the changelog section as its body, then rebuilds the VPM listing and publishes it to GitHub Pages. Pages has to be switched on once: **Settings › Pages › Build and deployment › Source: GitHub Actions**.
+To release, bump `version` in `package.json`, add the matching `## v<version>` section to `CHANGELOG.md`, and push a tag with the same version, for example `git tag v2026.9.29 && git push --tags`. The workflow creates the release with the changelog section as its body, then rebuilds the VPM listing and publishes it to GitHub Pages. Pages has to be switched on once: **Settings › Pages › Build and deployment › Source: GitHub Actions**.
 
 A second workflow (`.github/workflows/signatures.yml`) runs weekly and on demand. It regenerates the table the Project Doctor uses to recognise each tool's shaders and components, and opens a pull request when anything changed. It needs **Settings › Actions › General › Allow GitHub Actions to create and approve pull requests**.
 

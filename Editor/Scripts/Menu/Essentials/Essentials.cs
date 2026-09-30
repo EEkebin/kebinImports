@@ -34,6 +34,7 @@ namespace kebinImports
             new Essential("Avatar tools", "apt", "Avatar Performance Tools"),
             new Essential("Avatar tools", "gesture-manager", "Gesture Manager"),
             new Essential("Avatar tools", "av3emulator", "Av3Emulator"),
+            new Essential("Avatar tools", "vrcquesttools", "VRCQuestTools"),
             new Essential("Avatar tools", "mae", "Muscle Animation Editor"),
             new Essential("Legacy", "dynamic-bone", "Dynamic Bone"),
         };

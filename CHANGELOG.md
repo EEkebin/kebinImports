@@ -6,6 +6,7 @@
 - kebinAI works with Ollama on smaller GPUs: it now sets the context size so long conversations aren't cut off.
 - OpenCode's free models only work inside the OpenCode app now, so kebinAI says so clearly instead of blaming your API key.
 - New kebinAI providers: Google Gemini (free tier, the best free option) and OpenRouter (free models), plus Groq for its paid tier. When a service says to slow down, kebinAI waits and tries again.
+- Smaller fixes: Fix Materials says how many materials it changed, the Project Doctor asks before removing broken components, progress bars and messages use tool names instead of package ids, and a slow connection no longer freezes the Doctor.
 
 ## v2026.9.28 [The Everything Bagel Update]
 - Updated for Unity 2022.3.22f1 and the VRChat Creator Companion. kebinImports now installs as a package under Packages/.

@@ -1,0 +1,14 @@
+name: Check
+
+# Builds the package for every pull request (the same steps as a release build, from package.yml) so a broken package
+# is caught before it is merged. Read-only on purpose: GitHub refuses to start runs for bot-opened pull requests
+# (such as the weekly signature refresh) when a workflow asks for write access.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/package.yml

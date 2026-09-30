@@ -164,11 +164,11 @@ namespace kebinImports
                         parts.Add("set " + label + " to " + Value(kv.Value));
                     }
                 }
-                if (a.HasKey("enable_keywords") && a["enable_keywords"].Count > 0) parts.Add("turn on " + a["enable_keywords"].Count + " shader option(s)");
-                if (a.HasKey("disable_keywords") && a["disable_keywords"].Count > 0) parts.Add("turn off " + a["disable_keywords"].Count + " shader option(s)");
+                if (a.HasKey("enable_keywords") && a["enable_keywords"].Count > 0) parts.Add("turn on " + a["enable_keywords"].Count + (a["enable_keywords"].Count == 1 ? " shader option" : " shader options"));
+                if (a.HasKey("disable_keywords") && a["disable_keywords"].Count > 0) parts.Add("turn off " + a["disable_keywords"].Count + (a["disable_keywords"].Count == 1 ? " shader option" : " shader options"));
                 if (a.HasKey("render_queue")) parts.Add("set its render queue to " + a["render_queue"].Value);
                 if (parts.Count == 0) return "";
-                if (parts.Count > 4) parts = parts.Take(4).Concat(new[] { "and " + (parts.Count - 4) + " more change(s)" }).ToList();
+                if (parts.Count > 4) parts = parts.Take(4).Concat(new[] { "and " + (parts.Count - 4) + (parts.Count - 4 == 1 ? " more change" : " more changes") }).ToList();
                 return ": " + string.Join(", ", parts);
             }
             // A value in words: numbers as numbers, true/false as on/off, colors as #RRGGBB, vectors as (x, y, z), references by name.
@@ -224,6 +224,7 @@ namespace kebinImports
             private static string DoctorFix(string id, bool past)
             {
                 ProjectDoctor.Finding f = ProjectDoctor.Last != null ? ProjectDoctor.Last.Findings.FirstOrDefault(x => x.Id == id) : null;
+                if (f == null) ProjectDoctor.RecentlyApplied.TryGetValue(id ?? "", out f);
                 if (f == null || string.IsNullOrEmpty(f.FixLabel)) return (past ? "Applied a Project Doctor fix" : "Apply a Project Doctor fix") + ".";
                 return (past ? "Fixed: " : "") + f.FixLabel.TrimEnd('.') + (past ? "" : ", to fix: " + f.Title) + ".";
             }

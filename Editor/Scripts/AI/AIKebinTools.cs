@@ -171,12 +171,8 @@ namespace kebinImports
             {
                 if (string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to)) throw new ArgumentException("from_shader and to_shader are required.");
                 if (Shader.Find(to) == null) throw new ArgumentException("No shader named '" + to + "'. Use list_shaders.");
-                fixMaterials(from, to);
-                string summary = AIConsoleLog.Recent(3, false).LastOrDefault(l => l.Contains("Fix Materials changed"));
-                if (summary == null) return "Fix Materials ran.";
-                int start = summary.IndexOf("Fix Materials changed", StringComparison.Ordinal);
-                int end = summary.IndexOf("  @ ", start, StringComparison.Ordinal);
-                return end > start ? summary.Substring(start, end - start) : summary.Substring(start);
+                int changed = fixMaterials(from, to);
+                return "Fix Materials changed " + changed + (changed == 1 ? " material" : " materials") + " from '" + from + "' to '" + to + "'.";
             }
             private static string RemoveMissingScripts(string objectPath)
             {
@@ -189,7 +185,7 @@ namespace kebinImports
                 else roots = new[] { AITools.FindSceneObjectPublic(objectPath) };
                 int comps, gos;
                 RemoveMissingScriptsTool.RemoveFrom(roots, out comps, out gos);
-                return "Removed " + comps + " missing script component(s) from " + gos + " object(s).";
+                return "Removed " + comps + (comps == 1 ? " missing script component" : " missing script components") + " from " + gos + (gos == 1 ? " object." : " objects.");
             }
 
             // ---------------------------------------------------------------- menu reflection

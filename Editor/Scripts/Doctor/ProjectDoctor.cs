@@ -54,6 +54,8 @@ namespace kebinImports
             }
 
             public static Report Last { get; private set; }
+            // Fixes applied since the last check, so the chat log can still say what a fix did after it's gone from the report.
+            public static readonly Dictionary<string, Finding> RecentlyApplied = new Dictionary<string, Finding>();
 
             // ---------------------------------------------------------------- wording
             // The name a person knows a package by: the tool's name, else the package's own display name, else its id.
@@ -119,6 +121,7 @@ namespace kebinImports
                 if (f == null) throw new ArgumentException("No finding with id '" + id + "'. Run the doctor again; ids: " + string.Join(", ", r.Findings.Select(x => x.Id)));
                 if (f.Fix == null) return "'" + f.Title + "' has no automatic fix. " + f.Detail;
                 f.Fix();
+                RecentlyApplied[f.Id] = f;
                 r.Findings.Remove(f);
                 return "Applied: " + f.FixLabel + " (" + f.Title + ")." + (f.Recompiles ? " Unity will recompile; tell the user and end your reply." : "");
             }
@@ -140,7 +143,9 @@ namespace kebinImports
                 try
                 {
                     client = new HttpClient();
-                    cachedSdkUnityVersion = JSON.Parse(System.Threading.Tasks.Task.Run(() => HttpClient.DownloadString(client, "https://api.vrchat.cloud/api/1/config")).Result)["sdkUnityVersion"].Value;
+                    // Wait at most 5 seconds: a slow connection shouldn't freeze the Doctor. Without an answer the check is skipped.
+                    System.Threading.Tasks.Task<string> fetch = System.Threading.Tasks.Task.Run(() => HttpClient.DownloadString(client, "https://api.vrchat.cloud/api/1/config"));
+                    cachedSdkUnityVersion = fetch.Wait(TimeSpan.FromSeconds(5)) ? JSON.Parse(fetch.Result)["sdkUnityVersion"].Value : "";
                 }
                 catch (Exception) { cachedSdkUnityVersion = ""; }
                 return cachedSdkUnityVersion;
@@ -393,7 +398,18 @@ namespace kebinImports
                     }
                 }
                 if (count == 0) return;
-                r.Findings.Add(new Finding { Id = "missing-scripts", Severity = "warning", Title = Plural(count, "broken component", "broken components") + " in the scene", Detail = "These are components whose script no longer exists (Unity shows them as \"Missing Script\"). If a problem above names the tool they came from, install it instead. Otherwise it's safe to remove them.", FixLabel = "Remove the broken components", Safe = false, Fix = () => { int c, g; RemoveMissingScriptsTool.RemoveFrom(roots, out c, out g); Debug.Log("[kebinImports] Removed " + c + " missing script(s) from " + g + " object(s)."); } });
+                r.Findings.Add(new Finding { Id = "missing-scripts", Severity = "warning", Title = Plural(count, "broken component", "broken components") + " in the scene", Detail = "These are components whose script no longer exists (Unity shows them as \"Missing Script\"). If a problem above names the tool they came from, install it instead. Otherwise it's safe to remove them.", FixLabel = "Remove the broken components", Safe = false, Fix = () =>
+                {
+                    List<GameObject> now = new List<GameObject>();
+                    for (int i = 0; i < SceneManager.sceneCount; i++)
+                    {
+                        Scene scene = SceneManager.GetSceneAt(i);
+                        if (scene.isLoaded) now.AddRange(scene.GetRootGameObjects().Where(g => !IsPreviewRoot(g)));
+                    }
+                    int c, g2;
+                    RemoveMissingScriptsTool.RemoveFrom(now, out c, out g2);
+                    Debug.Log("[kebinImports] Removed " + Plural(c, "broken component", "broken components") + " from " + Plural(g2, "object", "objects") + ".");
+                } });
             }
         }
 
@@ -466,7 +482,7 @@ namespace kebinImports
                     });
                 }
                 EditorGUILayout.EndHorizontal();
-                if (r == null) { EditorGUILayout.HelpBox("Click Check again to scan the project.", MessageType.None); return; }
+                if (r == null) { EditorGUILayout.HelpBox("Click \"Check the project again\" to scan the project.", MessageType.None); return; }
                 // Vertical scrollbar only; rows are sized to the window so nothing ever runs off the right edge.
                 scroll = GUILayout.BeginScrollView(scroll, false, false, GUIStyle.none, GUI.skin.verticalScrollbar, GUI.skin.scrollView, GUILayout.ExpandHeight(true));
                 float rowWidth = logicalWidth - 34;           // window minus scrollbar and box padding
@@ -488,7 +504,7 @@ namespace kebinImports
                         ProjectDoctor.Finding finding = f;
                         Later(() =>
                         {
-                            if (finding.Recompiles && !EditorUtility.DisplayDialog("kebinImports", finding.FixLabel + "?\n\nUnity will recompile scripts afterwards.", "Do it", "Cancel")) return;
+                            if ((finding.Recompiles || !finding.Safe) && !EditorUtility.DisplayDialog("kebinImports", finding.FixLabel + "?\n\n" + finding.Title + "." + (finding.Recompiles ? "\n\nUnity will recompile scripts afterwards." : "\n\nYou can undo this with Ctrl+Z."), "Do it", "Cancel")) return;
                             try { Debug.Log("[kebinImports] " + ProjectDoctor.Fix(finding.Id)); }
                             catch (Exception e) { EditorUtility.DisplayDialog("kebinImports", "That fix didn't work.\n\n" + FriendlyError(e, "Project Doctor fix " + finding.Id + " failed"), "Ok"); }
                             RunDoctor();

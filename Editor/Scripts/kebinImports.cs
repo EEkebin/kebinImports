@@ -158,7 +158,7 @@ namespace kebinImports
         private static void AddUnityPackage(string id, string displayName)
         {
             UnityEditor.PackageManager.Requests.AddRequest request = UnityEditor.PackageManager.Client.Add(id);
-            EditorUtility.DisplayProgressBar("kebinImports", "Adding " + id + "…", 0.5f);
+            EditorUtility.DisplayProgressBar("kebinImports", "Adding " + displayName + "…", 0.5f);
             try
             {
                 WaitForPackageManager(request, "adding " + id);
@@ -175,7 +175,7 @@ namespace kebinImports
             {
                 string message = request.Error != null ? request.Error.message : "unknown error";
                 Debug.LogError("[kebinImports] Could not add " + id + ": " + message);
-                EditorUtility.DisplayDialog("kebinImports", "Could not add " + displayName + ":\n\n" + message, "Ok");
+                EditorUtility.DisplayDialog("kebinImports", "Unity's Package Manager couldn't add " + displayName + ". Check your internet connection and try again. The details are in Unity's Console.", "Ok");
             }
         }
         // ---------------------------------------------------------------- UI scale
